@@ -5,7 +5,27 @@ way to understand things at a detailed level.  For cs340lx we'll add
 readings, so you can also get a good idea for the concepts at a higher
 level and also so you can see how to write your own research papers.
 
-  - [0-purify](0-purify): We already read this paper for cs240lx,
+
+  - [1-eraser](1-eraser): we're going to make a single-step
+    version of eraser for lock checking, so it's good to see the original.
+    There's also an annotated version: 
+
+    Fun fact: One of three non-performance papers published in the 1990s
+    in the main systems conference (SOSP).
+
+  - [2-threads](2-threads): ``Threads cannot be implemented as a library.''
+    This is a useful paper to understand
+    how lies the compiler tells you can come crashing down if your progam
+    can observe machine state in ways the compiler does not expect.  It is
+    about threads, but the problem is much more general, especially at the 
+    level that we are writing code.
+
+    Fun fact: written by Boehm, the guy who came up w/ the cute GC hack
+    we implemented.  One of the few papers I know of in a top conference
+    that is just a complaint, with no real solution proposed.
+
+Additional readings:
+  - [purify](0-purify): We already read this paper for cs240lx,
     but since we're going to build a real version (not the simple 
     allocator checker from lab 11 in cs240lx) it may be worth reading
     over it again.   
@@ -16,14 +36,7 @@ level and also so you can see how to write your own research papers.
     the field back significantly and are one of the distal causes for
     why I think software patents are completely stupid.
 
-  - [1-eraser](1-eraser): we're going to make a single-step
-    version of eraser for lock checking, so it's good to see the original.
-    There's also an annotated version: 
-
-    Fun fact: One of three non-performance papers published in the 1990s
-    in the main systems conference (SOSP).
-
-   - [2-atom](2-atom): Atom: A System for Building Customized Program
+   - [atom](0-atom): Atom: A System for Building Customized Program
      Analysis Tools, Amitabh Srivastava and Alan Eustace
 
      The system that made Eraser (and many other tools possible).
@@ -31,7 +44,6 @@ level and also so you can see how to write your own research papers.
 
      Fun fact: one of the early winners of the PLDI significant papers
      award.  I nominated it.  (Others probably did as well!)
-
 
 Further readings:
   - In general, most papers from [cs240](http://web.stanford.edu/class/cs240/)
