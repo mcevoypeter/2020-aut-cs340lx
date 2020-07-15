@@ -91,12 +91,14 @@ Modifications:
       to delete it from your code.
    2. I changed `memcheck.h` to eliminate the last fault stuff, so you'll need the
       new one (or migrate your changes over if you modified it).
-   3. Pull over the rest of your code from last lab into this directory.
-   4. Make sure the tests using `make checkall` pass.
-   5. Use `trace_panic` instead of `panic` so line numbers don't matter.
-   6. Add some empty lines at the top of your memcheck.c (to make sure line numbers change)
+   3. I added a routine  `memcheck_trace_only_fn` that indicates we should not do shadow checking.
+      (so that the earlier tests give the same results).  You should just set a flag in it
+      and then call `memcheck_fn` and do nothing in the exception handler if the falg is set.
+   4. Pull over the rest of your code from last lab into this directory.
+   5. Make sure the tests using `make checkall` pass.
+   6. Use `trace_panic` instead of `panic` so line numbers don't matter.
+   7. Add some empty lines at the top of your memcheck.c (to make sure line numbers change)
       and make sure `make checkall` still passes.
-
 
 ###### part1-refactoring: Refactoring 
 
