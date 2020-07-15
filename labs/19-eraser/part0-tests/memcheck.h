@@ -35,12 +35,18 @@ int memcheck_fn(int (*fn)(void));
 // just trace <fn>
 int memtrace_fn(int (*fn)(void));
 
+// do not check, only trace <fn>: used for testing.
+int memcheck_trace_only_fn(int (*fn)(void));
+
+
 // for the moment, we just call these special allocator and free routines.
 void *memcheck_alloc(unsigned n);
 void memcheck_free(void *ptr);
 
 void *sys_memcheck_alloc(unsigned n);
 void sys_memcheck_free(void *ptr);
+
+
 
 #include "last-fault.h"
 
