@@ -100,6 +100,9 @@ Modifications:
    7. Add some empty lines at the top of your memcheck.c (to make sure line numbers change)
       and make sure `make checkall` still passes.
 
+NOTE: The checks should internally make sense even if you don't get exactly the same thing I did.
+(It's fine to get different output.)
+
 ###### part1-refactoring: Refactoring 
 
 For this part we'll pull out most of the code that does single-stepping
