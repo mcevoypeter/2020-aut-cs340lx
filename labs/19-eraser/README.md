@@ -115,6 +115,10 @@ will just call your `memcheck` extension.
      add more routines in the future.
   2. After each modification, make sure `make checkall` still works.
 
+**Note: our address space management is still a mess.  We're going to
+clean this up as we figure out better what makes sense, but for the
+moment just leave it the way it is.**
+
 Simple renaming:
  - `memcheck_trap_enable` as `memtrace_trap_on`
  - `memcheck_trap_disable` as `memtrace_trap_off`
