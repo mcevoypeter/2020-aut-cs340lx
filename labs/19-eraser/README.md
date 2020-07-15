@@ -103,6 +103,14 @@ Modifications:
 NOTE: The checks should internally make sense even if you don't get exactly the same thing I did.
 (It's fine to get different output.)
 
+
+
+        // hack for testing.
+        int memcheck_trace_only_fn(int (*fn)(void)) {
+            memtrace_p = 1;
+            return memcheck_fn(fn);
+        }
+
 ###### part1-refactoring: Refactoring 
 
 For this part we'll pull out most of the code that does single-stepping
