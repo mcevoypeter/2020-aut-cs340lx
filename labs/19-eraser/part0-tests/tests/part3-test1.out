@@ -1,15 +1,15 @@
 find-ttyusb.c:find_ttyusb_first:106:FOUND: </dev/ttyUSB0>
 opened tty port </dev/ttyUSB0>.
 my-install: tty-usb=</dev/ttyUSB0> program=<./tests/part3-test1.bin> about to boot
-******************sending 23380 bytes
+******************sending 23180 bytes
 waiting for a start
 got a start
 putting code
 put code and got back
 bootloader: Done.
 listening on ttyusb=</dev/ttyUSB0>
-memcheck.c:memcheck_on:148:memcheck: about to turn ON
-memcheck.c:memcheck_on:152:memcheck: ON
+memcheck.c:memcheck_on:125:memcheck: about to turn ON
+memcheck.c:memcheck_on:129:memcheck: ON
 TRACE:about to try running at user level
 system call: 2
 about to run sys_memcheck
@@ -18,8 +18,7 @@ system call: 3
 TRACE:domain section fault: 0x200000 at pc=0x8048
 fault address = 0x200000
 TRACE:mismatch at pc 0x804c: disabling
-PANIC:memcheck.c:shadow_check_st:371:store of freed memory!!: at pc=0x804c, addr=0x200000
-
+TRACE:ERROR:store of freed memory!!: at pc=0x804c, addr=0x200000
 DONE!!!
 
 Saw done

@@ -47,7 +47,7 @@ void notmain() {
     assert(!mmu_is_enabled());
 
     // we use memtrace_fn b/c you haven't done shadow memory etc.
-    int x = memtrace_fn(notmain_client);
+    int x = memcheck_trace_only_fn(notmain_client);
     assert(x == 0x12345678);
 
     assert(!mmu_is_enabled());

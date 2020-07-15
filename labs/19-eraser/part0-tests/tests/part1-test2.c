@@ -19,7 +19,7 @@ int notmain_client() {
 void notmain() {
     assert(!mmu_is_enabled());
 
-    int x = memtrace_fn(notmain_client);
+    int x = memcheck_trace_only_fn(notmain_client);
     assert(x == 0x12345678);
 
     assert(!mmu_is_enabled());
