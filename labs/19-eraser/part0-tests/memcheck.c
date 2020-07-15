@@ -271,7 +271,7 @@ void memcheck_trap_enable(void) {
 }
 
 #include "single-step.h"
-#include "sys-call-asm.h"
+#include "user-mode-asm.h"
 int memcheck_fn(int (*fn)(void)) {
     static int initialized_memcheck = 0;
     if (!initialized_memcheck) {
@@ -306,9 +306,12 @@ void memcheck_free(void *ptr) {
 }
 
 void *sys_memcheck_alloc(unsigned n) {
-    return sys_memcheck_alloc_trampoline(n);
+    void *ptr;
+    asm volatile("swi 1");
+    asm volatile("mov %[result], r0" : [result] "=r" (ptr) ::);
+    return ptr;
 }
 
 void sys_memcheck_free(void *ptr) {
-    sys_memcheck_free_trampoline(ptr);
+    asm volatile("swi 2");
 }

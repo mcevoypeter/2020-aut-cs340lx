@@ -2,7 +2,7 @@
 #include "rpi-interrupts.h"
 #include "single-step.h"
 #include "libc/helper-macros.h"
-#include "sys-call-asm.h"
+#include "syscall-asm.h"
 
 void single_step_init(void) {
     debug_init();

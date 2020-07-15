@@ -20,28 +20,3 @@ MK_FN(user_mode_run_fn)
     mov r0, r5      @ move return value into r0
     pop {r2-r12, lr}
     bx lr
-
-@ arguments
-@   r0 = n
-MK_FN(sys_memcheck_alloc_trampoline)
-    push {r4-r12, lr}
-    swi 1
-    pop {r4-r12, lr}
-    bx lr
-
-@ arguments
-@   r0 = ptr
-MK_FN(sys_memcheck_free_trampoline)
-    push {r4-r12, lr}
-    swi 2
-    pop {r4-r12, lr}
-    bx lr
-
-@ arguments:
-@   
-MK_FN(sys_10_asm)
-    push {r4-r12, lr}
-    swi 10
-    pop {r4-r12, lr}
-    bx lr
-

@@ -31,12 +31,14 @@ GREP_STR := 'TRACE:\|ERROR:\|PANIC:'
 # ALL_ASM := $(wildcard ./*.S)
 # $(patsubst %.S, %.o, $(ALL_ASM))  
 SYS_OBJS = 	debug.o \
-			interrupts-asm.o \
+			interrupt-asm.o \
+			interrupt-vectors.o \
+			user-mode-asm.o \
 			memcheck.o \
 			mmu.o \
 			mmu-helpers.o \
 			single-step.o \
-			sys-call-asm.o \
+			syscall-asm.o \
 			last-fault.o
 
 
