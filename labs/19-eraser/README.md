@@ -147,7 +147,13 @@ prelab, but here we are.
 Here, we just track the locks held during any modification and give an error if the 
 lockset goes to empty.  
    - The tests are in `tests/part2-tests*.c`
-   - For simplicity, just assume that we have at most 32-locks in the program.
+    
+For simplicity, assume:
+  1. We track one piece of memory.
+  2. We have one lock.
+  3. We only have two threads.
+
+This should let you do the intersection and the rest easily in the interests of time.
 
 --------------------------------------------------------------------------------------
 #### Part 3: Shared-exclusive Eraser

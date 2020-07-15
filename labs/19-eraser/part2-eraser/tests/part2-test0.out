@@ -1,0 +1,22 @@
+find-ttyusb.c:find_ttyusb_first:106:FOUND: </dev/ttyUSB0>
+opened tty port </dev/ttyUSB0>.
+my-install: tty-usb=</dev/ttyUSB0> program=<./tests/part2-test0.bin> about to boot
+******************sending 23548 bytes
+waiting for a start
+got a start
+putting code
+put code and got back
+bootloader: Done.
+listening on ttyusb=</dev/ttyUSB0>
+memtrace.c:memtrace_on:148:memtracing: about to turn ON
+memtrace.c:memtrace_on:152:memtracing: ON
+TRACE:about to try running at user level
+system call: 1
+done with user mode run!
+memtrace.c:memtrace_off:160:memtrace: OFF
+TRACE:success!!
+DONE!!!
+
+Saw done
+
+bootloader: pi exited.  cleaning up
