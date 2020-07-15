@@ -26,11 +26,11 @@ TESTS = ./tests/part1-test0.c \
 
 TESTS := $(patsubst %.c, %, $(TESTS))  
 GREP_STR := 'TRACE:\|ERROR:\|PANIC:' 
-GREP_STR := 'GC:\|ERROR:\|PANIC:' 
+#GREP_STR := 'GC:\|ERROR:\|PANIC:' 
 
 # ALL_ASM := $(wildcard ./*.S)
 # $(patsubst %.S, %.o, $(ALL_ASM))  
-SYS_OBJS = 	cp14-debug.o \
+SYS_OBJS = 	debug.o \
 			interrupts-asm.o \
 			memcheck.o \
 			mmu.o \
@@ -71,7 +71,7 @@ DEPS := $(MEMMAP) $(LPI) $(LIBM) $(wildcard ./*.h) ./Makefile
 # i *think* order is important.
 LIBS = $(LPI)  
 
-all:  libs $(OBJS) $(TEST_BINARIES) $(TEST_RUN) # $(TEST_CHECK)
+all:  libs $(OBJS) $(TEST_BINARIES) #$(TEST_RUN) # $(TEST_CHECK)
 
 update:
 	cp part1-test*.c part1-test*.out ../code

@@ -13,7 +13,7 @@
  *
  */
 #include "memcheck.h"
-#include "cp14-debug.h"
+#include "debug.h"
 #include "libc/helper-macros.h"
 
 
@@ -58,8 +58,7 @@ void memcheck_continue_after_fault(void) {
 static void single_step_handler(uint32_t regs[16], uint32_t pc, uint32_t addr) {
     trace("got breakpoint mismatch at pc=%p, addr=%p\n", pc, addr);
     memcheck_trap_enable();
-    // TODO: is addr the correct address here?
-    brkpt_mismatch_disable0(pc-4);
+    debug_breakpt0_off(pc-4);
 }
 
 static unsigned no_shadow_check = 0;
@@ -114,7 +113,8 @@ void data_abort_vector(unsigned lr) {
                             lr, fault_addr);
                 dom_perm_set(shadow_id, DOM_no_access);
             }
-            brkpt_mismatch_set0(lr, single_step_handler);
+            debug_mismatch_breakpt0_on(lr, single_step_handler);
+            //debug_set_mismatch_breakpt0(lr, single_step_handler);
             break;
             // set single step mismatch
         case translation_section:

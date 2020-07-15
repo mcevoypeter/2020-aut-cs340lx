@@ -2,11 +2,11 @@
 #include "rpi.h"
 #include "rpi-interrupts.h"
 #include "libc/helper-macros.h"
-#include "cp14-debug.h"
+#include "debug.h"
 #include "bit-support.h"
 #include "sys-lock.h"
 
-void cp14_enable(void) {
+void debug_init(void) {
     static int init_p = 0;
 
     if(!init_p) { 
@@ -28,7 +28,7 @@ void cp14_enable(void) {
 
 // set the first watchpoint and call <handler> on debug fault: 13-47
 static handler_t watchpt_handler0 = 0;
-void watchpt_set0(uint32_t addr, handler_t handler) {
+void debug_watchpt0_on(uint32_t addr, handler_t watchpt_handler) {
     // clear bit 0 of WCR to disable the watchpoint
     uint32_t wcr = cp14_wcr0_get();
     wcr = bit_clr(wcr, 0);
@@ -47,55 +47,13 @@ void watchpt_set0(uint32_t addr, handler_t handler) {
     cp14_wcr0_set(wcr);
     assert(cp14_wcr0_get() == wcr);
 
-    watchpt_handler0 = handler;
-}
-
-#if 0
-// check for watchpoint fault and call <handler> if so.
-void data_abort_vector(unsigned pc) {
-    static int nfaults = 0;
-    printk("nfault=%d: data abort at %p\n", nfaults++, pc);
-    if(datafault_from_ld())
-        printk("was from a load\n");
-    else
-        printk("was from a store\n");
-    if(!was_debug_datafault()) 
-        panic("impossible: should get no other faults\n");
-
-    // this is the pc
-    printk("wfar address = %p, pc = %p\n", cp14_wfar_get()-8, pc);
-    assert(cp14_wfar_get()-4 == pc);
-
-    assert(watchpt_handler0);
-    
-    uint32_t addr = cp15_far_get();
-    printk("far address = %p\n", addr);
-
-    // should send all the registers so the client can modify.
-    watchpt_handler0(0, pc, addr);
-}
-#endif
-
-#define bvr_match (0b00 << 21)
-#define bvr_mismatch (0b10 << 21)
-
-static inline uint32_t brkpt_get_va0(void) {
-    return cp14_bvr0_get();
-}
-
-static uint32_t brkpt_disable0(void) {
-    // clear bit 0 of BCR to disable the breakpoint
-    uint32_t bcr = cp14_bcr0_get();
-    bcr = bit_clr(bcr, 0);
-    cp14_bcr0_set(bcr); 
-    assert(cp14_bcr0_get() == bcr);
-    return bcr;
+    watchpt_handler0 = watchpt_handler;
 }
 
 // 13-16
-static handler_t brkpt_handler0 = 0;
-void brkpt_set0(uint32_t addr, handler_t handler) {
-    uint32_t bcr = brkpt_disable0();
+static handler_t breakpt_handler0 = 0;
+void debug_match_breakpt0_on(uint32_t addr, handler_t breakpt_handler) {
+    uint32_t bcr = debug_breakpt0_off(addr);
 
     // write the address to BVR
     cp14_bvr0_set(addr);
@@ -111,16 +69,16 @@ void brkpt_set0(uint32_t addr, handler_t handler) {
     cp14_bcr0_set(bcr);
     assert(cp14_bcr0_get() == bcr);
 
-    brkpt_handler0 = handler;
+    breakpt_handler0 = breakpt_handler;
 }
 
 
-// if get a breakpoint call <brkpt_handler0>
+// if get a breakpoint call <breakpt_handler0>
 void prefetch_abort_vector(unsigned pc) {
     if(!was_debug_instfault())
         panic("impossible: should get no other faults\n");
-    assert(brkpt_handler0);
-    brkpt_handler0(0, pc, cp15_ifar_get());
+    assert(breakpt_handler0);
+    breakpt_handler0(0, pc, cp15_ifar_get());
 }
 
 /**************************************************************
@@ -134,8 +92,8 @@ void brk_no_ret_error(void) {
     panic("returned and should not have!\n");
 }
 
-void brkpt_mismatch_set0(uint32_t addr, handler_t handler) {
-    uint32_t bcr = brkpt_disable0();
+void debug_mismatch_breakpt0_on(uint32_t addr, handler_t breakpt_handler) {
+    uint32_t bcr = debug_breakpt0_off(addr);;
 
     // write the address to BVR
     cp14_bvr0_set(addr);
@@ -151,16 +109,18 @@ void brkpt_mismatch_set0(uint32_t addr, handler_t handler) {
     cp14_bcr0_set(bcr);
     assert(cp14_bcr0_get() == bcr);
 
-    brkpt_handler0 = handler;
+    breakpt_handler0 = breakpt_handler;
 }
 
 // should be this addr.
-void brkpt_mismatch_disable0(uint32_t addr) {
+uint32_t debug_breakpt0_off(uint32_t addr) {
+    // TODO: verify that the breakpoint is set on addr
     // clear bit 0 of BCR to disable the breakpoint
     uint32_t bcr = cp14_bcr0_get();
     bcr = bit_clr(bcr, 0);
     cp14_bcr0_set(bcr); 
     assert(cp14_bcr0_get() == bcr);
+    return bcr;
 }
 
 // <pc> should point to the system call instruction.
@@ -227,3 +187,14 @@ int syscall_vector(unsigned pc, uint32_t r0, uint32_t r1, uint32_t r2) {
     }
 }
 
+
+#if 0
+static uint32_t brkpt_disable0(void) {
+    // clear bit 0 of BCR to disable the breakpoint
+    uint32_t bcr = cp14_bcr0_get();
+    bcr = bit_clr(bcr, 0);
+    cp14_bcr0_set(bcr); 
+    assert(cp14_bcr0_get() == bcr);
+    return bcr;
+}
+#endif

@@ -1,5 +1,5 @@
-#ifndef __CP14_DEBUG_H__
-#define __CP14_DEBUG_H__
+#ifndef __DEBUG_H__
+#define __DEBUG_H__
 
 #include "bit-support.h"
 #include "coprocessor.h"
@@ -7,7 +7,7 @@
 
 
 // enable the co-processor.
-void cp14_enable(void);
+void debug_init(void);
 
 // client supplied fault handler: give a pointer to the registers so 
 // the client can modify them (for the moment pass NULL)
@@ -16,10 +16,12 @@ void cp14_enable(void);
 typedef void (*handler_t)(uint32_t regs[16], uint32_t pc, uint32_t addr);
 
 // set a watchpoint at <addr>: calls <handler> with a pointer to the registers.
-void watchpt_set0(uint32_t addr, handler_t watchpt_handle);
+void debug_watchpt0_on(uint32_t addr, handler_t watchpt_handler);
+//void watchpt_set0(uint32_t addr, handler_t watchpt_handle);
 
 // set a breakpoint at <addr>: call handler when the fault happens.
-void brkpt_set0(uint32_t addr, handler_t brkpt_handler);
+void debug_match_breakpt0_on(uint32_t addr, handler_t breakpt_handler);
+//void brkpt_set0(uint32_t addr, handler_t brkpt_handler);
 
 // set a mismatch on <addr> --- call <handler> on mismatch.
 // NOTE:
@@ -30,33 +32,18 @@ void brkpt_set0(uint32_t addr, handler_t brkpt_handler);
 //  - once you are in USER_MODE you cannot switch modes on your own since the 
 //    the required "msr" instruction will be ignored.  if you do want to 
 //    return from user space you'd have to do a system call ("swi") that switches.
-void brkpt_mismatch_set0(uint32_t addr, handler_t handler);
+void debug_mismatch_breakpt0_on(uint32_t addr, handler_t breakpt_handler);
+//void brkpt_mismatch_set0(uint32_t addr, handler_t handler);
 
 // disable mismatch breakpoint <addr>: error if doesn't exist.
-void brkpt_mismatch_disable0(uint32_t addr);
+uint32_t debug_breakpt0_off(uint32_t addr);
+//void brkpt_mismatch_disable0(uint32_t addr);
 
 // simple debug macro: can turn it off/on by calling <brk_verbose({0,1})>
 #define brk_debug(args...) if(brk_verbose_p) debug(args)
 
 extern int brk_verbose_p;
 static inline void brk_verbose(int on_p) { brk_verbose_p = on_p; }
-
-// Set:
-//  - cpsr to <cpsr> 
-//  - sp to <stack_addr>
-// and then call <fp>.
-//
-// Does not return.
-//
-// used to get around the problem that if we switch to USER_MODE in C code,
-// it will not have a stack pointer setup, which will cause all sorts of havoc.
-void user_trampoline_no_ret(uint32_t cpsr, void (*fp)(void));
-
-// same as user_trampoline_no_ret except:
-//  -  it returns to the caller with the cpsr set correctly.
-//  - it calls <fp> with a user-supplied pointer.
-//  16-part2-test1.c
-void user_trampoline_ret(uint32_t cpsr, void (*fp)(void *handle), void *handle);
 
 // reason for watchpoint debug fault: 3-64 
 static inline unsigned datafault_from_ld(void) {
