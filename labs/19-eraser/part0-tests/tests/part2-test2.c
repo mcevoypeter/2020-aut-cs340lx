@@ -7,6 +7,7 @@
 //
 // XXX: need to add checks that we caught the right exception.
 #include "memcheck.h"
+#include "memtrace.h"
 #include "cpsr-util.h"
 
 static int fault_cnt = 1;
@@ -47,7 +48,7 @@ void notmain() {
     assert(!mmu_is_enabled());
 
     // we use memtrace_fn b/c you haven't done shadow memory etc.
-    int x = memcheck_trace_only_fn(notmain_client);
+    int x = memtrace_fn(notmain_client);
     assert(x == 0x12345678);
 
     assert(!mmu_is_enabled());

@@ -35,6 +35,7 @@ SYS_OBJS = 	debug.o \
 			interrupt-vectors.o \
 			user-mode-asm.o \
 			memcheck.o \
+			memtrace.o \
 			mmu.o \
 			mmu-helpers.o \
 			single-step.o \
