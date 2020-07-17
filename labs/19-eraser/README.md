@@ -198,6 +198,28 @@ same as above; if I was more clever we'd have a way to flip their behaivor:
   - `part2-test6.c` (no error) --- similar, but has the memory allocation 
     outside of the lock and only has one thread, so no error.
 
+
+I used the following dumb way to get from lockset pointers to integers:
+
+    // should the empty lockset have an id?
+    static uint16_t lock_to_int(void *lock) {
+    #   define MAXLOCKS 32
+        static void *locks[MAXLOCKS];
+
+        if(!lock)
+            return 0;
+        for(unsigned i = 0; i < MAXLOCKS; i++) {
+            if(locks[i] == lock)
+                return i+1;
+            if(!locks[i]) {
+                locks[i] = lock;
+                return i+1;
+            }
+        }
+        panic("too many locks!!\n");
+    }
+
+
 --------------------------------------------------------------------------------------
 #### Part 4: Shared Eraser
 
