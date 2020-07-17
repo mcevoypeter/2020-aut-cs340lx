@@ -20,8 +20,8 @@ int notmain_client() {
 
     unlock(&l);
 
-    trace("expect an error at pc=%p, addr=%p\n", get32, x);
-    return get32(x);    // error
+    trace("should *not* have an error because no other thread touches\n");
+    return get32(x);    // not an error 
 }
 
 void notmain() {

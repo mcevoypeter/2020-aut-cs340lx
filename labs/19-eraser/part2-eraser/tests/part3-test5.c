@@ -20,6 +20,8 @@ int notmain_client() {
 
     unlock(&l);
 
+    // "second" thread --- should have an error.
+    eraser_set_thread_id(2);
     trace("expect an error at pc=%p, addr=%p\n", get32, x);
     return get32(x);    // error
 }
