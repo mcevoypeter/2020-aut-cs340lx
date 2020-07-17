@@ -4,6 +4,10 @@
 // has the lock/unlock etc implementation.
 #include "fake-thread.h"
 
+#ifndef LEVEL
+#   define LEVEL ERASER_TRIVIAL
+#endif
+
 static int l;
 int notmain_client() {
     assert(mode_is_user());
@@ -16,14 +20,16 @@ int notmain_client() {
 
     unlock(&l);
 
-    trace("expect an error at pc=%p, addr=%p\n", get32, x);
+    trace("--------------------------------------------------\n");
+    trace("expect a load error at pc=%p, addr=%p\n", get32, x);
+    trace("--------------------------------------------------\n");
     return get32(x);    // error
 }
 
 void notmain() {
     assert(!mmu_is_enabled());
     
-    int x = eraser_fn_level(notmain_client, ERASER_TRIVIAL);
+    int x = eraser_fn_level(notmain_client, LEVEL);
     assert(x == 0x12345678);
     assert(!mmu_is_enabled());
     trace_clean_exit("success!!\n");

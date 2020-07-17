@@ -12,14 +12,13 @@ int notmain_client() {
 
     lock(&l);
     int *x = kmalloc(4);
-    put32(x,0x12345678);   // should be fine.
+    put32(x,1);   // should be fine.
 
     unlock(&l);
-    trace("---------------------------------------------\n");
-    trace("expect a store error at pc=%p, addr=%p\n", put32, x); 
-    trace("---------------------------------------------\n");
-    put32(x,4);         // error
-    return 0;
+    trace("should not have an error because a second thread does not touch %p\n", x);
+
+    put32(x,0x12345678);   // should be fine.
+    return get32(x);
 }
 
 void notmain() {

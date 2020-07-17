@@ -142,23 +142,61 @@ Overall this is pretty simple, and I probably should have had you do it in a
 prelab, but here we are.
 
 --------------------------------------------------------------------------------------
-#### Part 2: Simple Eraser
+#### Part 2: Useless Eraser
 
-Here, we just track the locks held during any modification and give an error if the 
-lockset goes to empty.  
-   - The tests are in `tests/part2-tests*.c`
-    
+Here, we just track the locks held during any modification and give an
+error if the lockset goes to empty when a thread is running.    This is
+pretty useless, so we quickly refine it.
+
 For simplicity, assume:
-  1. We track one piece of memory.
-  2. We have one lock.
-  3. We only have two threads.
+  1. We track exactly one piece of memory.
+  2. We have at most two locks.
+  3. We have exactly two threads.
 
-This should let you do the intersection and the rest easily in the interests of time.
+Because of this you can use a few statically declared global variables,
+no memory allocation, no set operations, no tricky data structures..
+You will just give an error if they touch the one location in the heap
+without a lock.
+
+We will lift these restrictions in a bit, but in the interests of time, keep it
+dumb for the moment.
+
+The tests are in `tests/part2-tests*.c`:
+  - `part2-test0.c` (no error) --- basic non-eraser test that makes sure
+    you can still run a routine at user level.
+  - `part2-test1.c` (no error) --- basic non-eraser test that makes sure
+    you can still allocate, write and read heap memory.  
+  - `part2-test2.c` (no error) --- simple eraser test that has one
+    "thread" that acquires a lock, allocates memory, writes then reads
+    memory, and releases the lock. Should have no error.
+  - `part2-test3.c` (error) --- similar, but does the read without
+    the lock.   This will have an error because the we aren't tracking
+    if state is shared.  
+  - `part2-test4.c` (error) --- similar, but does a write without the lock.
+    This will have an error because the we aren't tracking
+    if state is shared.  
 
 --------------------------------------------------------------------------------------
 #### Part 3: Shared-exclusive Eraser
 
-Now add the shared exclusive state.  Tests are in `part3-tests*.c`.
+The previous eraser is pretty useless.  Let us at least track if a second
+thread is touching something!     We'll use the shared exclusive state
+for this.  You'll probably want to track the thread ID for each variable
+touched in the virgin state.  When another thread touches it, go to
+shared-exclusive and initialize the variable's lockset to the current one.
+Give an error if the lockset is empty now or becomes empty later.
+
+The tests are in `tests/part3-tests*.c` --- the first two tests are the
+same as above; if I was more clever we'd have a way to flip their behaivor:
+  - `part3-test3.c` (no error) --- identical test as `part2-test3.c` but here we
+    will *not* have an error because a second thread does not touch it.
+  - `part2-test4.c` (no error) --- identical test as `part2-test4.c` but here
+    we will not have an error because a second thread does not touch it.
+
+  - `part2-test5.c` (error) --- similar, but the unlocked read is done
+    by a second thread so you should flag an error.
+  - `part2-test6.c` (no error) --- similar, but has the memory allocation 
+    outside of the lock and only has one thread, so no error.
 
 --------------------------------------------------------------------------------------
 #### Part 4: Shared Eraser
@@ -190,3 +228,5 @@ There are obviously all sorts of extensions.
      think of an alternative approach.
 
   4. Lots of other ones to make this tool more useful.  It's obviously pretty crude.
+
+Test.

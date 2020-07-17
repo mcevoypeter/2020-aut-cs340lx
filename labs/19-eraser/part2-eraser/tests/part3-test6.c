@@ -15,9 +15,10 @@ int notmain_client() {
     put32(x,0x12345678);   // should be fine.
 
     unlock(&l);
-    trace("---------------------------------------------\n");
-    trace("expect a store error at pc=%p, addr=%p\n", put32, x); 
-    trace("---------------------------------------------\n");
+
+    // "second" thread --- should get an error.
+    eraser_set_thread_id(2);
+    trace("expect an error at pc=%p, addr=%p\n", put32, x); 
     put32(x,4);         // error
     return 0;
 }
