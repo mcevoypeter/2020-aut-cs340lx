@@ -117,6 +117,7 @@ int memtrace_fn(int (*fn)(void)) {
     memtrace_on();
     assert(mmu_is_enabled());
     assert(mode_is_super());
+    trace("about to try running at user level\n");
     int ret_val = user_mode_run_fn(fn, STACK_ADDR2);
     assert(mmu_is_enabled());
     assert(mode_is_super());

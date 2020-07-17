@@ -3,7 +3,8 @@
 #   - "make emitall" it emit .outs for all programs in TESTS
 #   - "make runall" it will run all programs in TESTS
 # should just work
-TESTS = ./tests/part2-test0.c 
+TESTS = ./tests/part2-test0.c \
+		./tests/part2-test1.c
 
 # part1-test2 part1-test3 part1-test4
 # part1-test1 part1-test2 part1-test3 part1-test4

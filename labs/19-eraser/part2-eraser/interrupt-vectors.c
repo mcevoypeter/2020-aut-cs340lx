@@ -110,10 +110,12 @@ void data_abort_vector(unsigned lr) {
 int syscall_vector(unsigned pc, uint32_t r0, uint32_t r1, uint32_t r2) {
     // SWI: A4-210 of ARMv6 instruction manual
     uint32_t syscall_num = *(uint32_t *)pc & 0xffffff;
+    printk("system call: %u\n", syscall_num);
     switch (syscall_num) {
         case 0:;
             uint32_t spsr = r0;
             spsr_set(spsr);
+            printk("done running function in user mode!\n");
             return 0;
         case 1:;
             uint32_t n = r0;

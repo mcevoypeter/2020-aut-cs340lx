@@ -53,17 +53,16 @@ void eraser_set_thread_id(int tid) {
 
 int eraser_fn_level(int (*fn)(void), int level) {
     eraser_level = level;
-    return eraser_fn(fn);
+    return eraser_check_fn(fn);
 }
 
 // what do we have to do?   when we allocate, need to add to the mapping.
-int eraser_fn(int (*fn)(void)) {
-    // should look like your memcheck_fn
-    unimplemented();
-    return memtrace_fn(memcheck_h, fn);
+extern unsigned shadow_check;
+int eraser_check_fn(int (*fn)(void)) {
+    shadow_check = 1;
+    return memtrace_fn(fn);
 }
 
-int eraser_trace_only_fn(int (*fn)(void)) {
-    trace_only_p = 1;
-    return eraser_fn(fn);
+int eraser_trace_fn(int (*fn)(void)) {
+    return memtrace_fn(fn);
 }

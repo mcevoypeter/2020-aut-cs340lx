@@ -13,13 +13,13 @@
 enum { ERASER_TRIVIAL = 1 };
 
 // Run eraser on <fn>
-int eraser_fn(int (*fn)(void));
+int eraser_check_fn(int (*fn)(void));
 
 // user can pass in the level that we are checking at.
 int eraser_fn_level(int (*fn)(void), int eraser_level);
 
 // run but do not do tracking (helps for testing)
-int eraser_trace_only_fn(int (*fn)(void));
+int eraser_trace_fn(int (*fn)(void));
 
 // Tell eraser that [addr, addr+nbytes) is allocated (mark as 
 // Virgin).
