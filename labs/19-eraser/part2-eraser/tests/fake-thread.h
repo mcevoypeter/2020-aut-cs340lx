@@ -22,4 +22,7 @@ static inline void *alloc(unsigned n) {
     eraser_mark_alloc(ptr, n);
     return ptr;
 }
+
+#define kmalloc alloc
+
 #endif

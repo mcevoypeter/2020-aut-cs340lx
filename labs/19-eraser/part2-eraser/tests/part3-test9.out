@@ -1,7 +1,7 @@
 find-ttyusb.c:find_ttyusb_first:106:FOUND: </dev/ttyUSB0>
 opened tty port </dev/ttyUSB0>.
 my-install: tty-usb=</dev/ttyUSB0> program=<./tests/part3-test9.bin> about to boot
-******************sending 25488 bytes
+******************sending 26020 bytes
 waiting for a start
 got a start
 putting code
@@ -11,35 +11,36 @@ listening on ttyusb=</dev/ttyUSB0>
 memtrace.c:memtrace_on:148:memtracing: about to turn ON
 memtrace.c:memtrace_on:152:memtracing: ON
 TRACE:about to try running at user level
-TRACE:domain section fault: 0x200000 at pc=0xc078
+TRACE:domain section fault: 0x200000 at pc=0xc1cc
 fault address = 0x200000
-TRACE:mismatch at pc 0xc07c: disabling
+TRACE:mismatch at pc 0xc1d0: disabling
 -------------------------------------------------
-TRACE:ERASER:tid=1:in virgin state, going to exclusive: pc=0xc07c, addr=0x200000
-legal store at pc=0xc07c, addr=0x200000
-TRACE:domain section fault: 0x200001 at pc=0xc078
+TRACE:ERASER:tid=1:in virgin state, going to exclusive: pc=0xc1d0, addr=0x200000
+legal store at pc=0xc1d0, addr=0x200000
+TRACE:domain section fault: 0x200001 at pc=0xc1cc
 fault address = 0x200001
-TRACE:mismatch at pc 0xc07c: disabling
+TRACE:mismatch at pc 0xc1d0: disabling
 -------------------------------------------------
-TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0xc07c, addr=0x200001
-legal store at pc=0xc07c, addr=0x200001
-TRACE:domain section fault: 0x200002 at pc=0xc078
+TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0xc1d0, addr=0x200001
+legal store at pc=0xc1d0, addr=0x200001
+TRACE:domain section fault: 0x200002 at pc=0xc1cc
 fault address = 0x200002
-TRACE:mismatch at pc 0xc07c: disabling
+TRACE:mismatch at pc 0xc1d0: disabling
 -------------------------------------------------
-TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0xc07c, addr=0x200002
-legal store at pc=0xc07c, addr=0x200002
-TRACE:domain section fault: 0x200003 at pc=0xc078
+TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0xc1d0, addr=0x200002
+legal store at pc=0xc1d0, addr=0x200002
+TRACE:domain section fault: 0x200003 at pc=0xc1cc
 fault address = 0x200003
-TRACE:mismatch at pc 0xc07c: disabling
+TRACE:mismatch at pc 0xc1d0: disabling
 -------------------------------------------------
-TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0xc07c, addr=0x200003
-legal store at pc=0xc07c, addr=0x200003
+TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0xc1d0, addr=0x200003
+legal store at pc=0xc1d0, addr=0x200003
+TRACE:ERASER:tid=1:in mark_alloc: addr=0x200000, nbytes=4
 TRACE:domain section fault: 0x200000 at pc=0x8020
 fault address = 0x200000
 TRACE:mismatch at pc 0x8024: disabling
 -------------------------------------------------
-TRACE:ERASER:tid=1:in exclusive state: staying in it: pc=0x8024, addr=0x200000
+TRACE:ERASER:tid=1:in virgin state, going to exclusive: pc=0x8024, addr=0x200000
 legal store at pc=0x8024, addr=0x200000
 TRACE:domain section fault: 0x200000 at pc=0x8020
 fault address = 0x200000
