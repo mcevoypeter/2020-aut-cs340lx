@@ -10,7 +10,10 @@
 #include "cpsr-util.h"
 
 // different levels of eraser.
-enum { ERASER_TRIVIAL = 1 };
+enum { ERASER_TRIVIAL = 1, 
+    ERASER_SHARED_EX = 2,  
+    ERASER_HIGHEST = ERASER_SHARED_EX
+};
 
 // Run eraser on <fn>
 int eraser_fn(int (*fn)(void));

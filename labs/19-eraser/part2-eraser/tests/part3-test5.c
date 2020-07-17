@@ -4,10 +4,6 @@
 // has the lock/unlock etc implementation.
 #include "fake-thread.h"
 
-#ifndef LEVEL
-#   define LEVEL ERASER_TRIVIAL
-#endif
-
 static int l;
 int notmain_client() {
     assert(mode_is_user());
@@ -29,7 +25,7 @@ int notmain_client() {
 void notmain() {
     assert(!mmu_is_enabled());
     
-    int x = eraser_fn_level(notmain_client, LEVEL);
+    int x = eraser_fn_level(notmain_client, ERASER_SHARED_EX);
     assert(x == 0x12345678);
     assert(!mmu_is_enabled());
     trace_clean_exit("success!!\n");
