@@ -26,7 +26,7 @@ int notmain_client() {
 void notmain() {
     assert(!mmu_is_enabled());
     
-    int x = eraser_fn_level(notmain_client, ERASER_TRIVIAL);
+    int x = eraser_fn_level(notmain_client, ERASER_SHARED_EX);
     assert(x == 0x12345678);
     assert(!mmu_is_enabled());
     trace_clean_exit("success!!\n");
