@@ -1,5 +1,6 @@
 // engler: take one domain trap and resume (sanity check).
 #include "memcheck.h"
+#include "memtrace.h"
 
 int notmain_client() {
     assert(mode_is_user());
@@ -19,7 +20,7 @@ int notmain_client() {
 void notmain() {
     assert(!mmu_is_enabled());
 
-    int x = memcheck_trace_only_fn(notmain_client);
+    int x = memtrace_fn(notmain_client);
     assert(x == 0x12345678);
 
     assert(!mmu_is_enabled());

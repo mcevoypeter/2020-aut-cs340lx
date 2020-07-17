@@ -1,5 +1,6 @@
 // engler: make sure you can restart checking multiple times.
 #include "memcheck.h"
+#include "memtrace.h"
 #include "cpsr-util.h"
 
 static int fault_cnt = 1;
@@ -24,7 +25,7 @@ int notmain_client() {
 
 static void run(void) {
     assert(!mmu_is_enabled());
-    int x = memcheck_trace_only_fn(notmain_client);
+    int x = memtrace_fn(notmain_client);
     assert(x == 0x12345678);
     assert(!mmu_is_enabled());
 }

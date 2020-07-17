@@ -1,5 +1,6 @@
 // engler: keep taking traps using single-stepping
 #include "memcheck.h"
+#include "memtrace.h"
 #include "cpsr-util.h"
 
 int notmain_client() {
@@ -24,7 +25,7 @@ int notmain_client() {
 
 void notmain() {
     assert(!mmu_is_enabled());
-    int x = memcheck_trace_only_fn(notmain_client);
+    int x = memtrace_fn(notmain_client);
     assert(x == 0x12345678);
     assert(!mmu_is_enabled());
 
