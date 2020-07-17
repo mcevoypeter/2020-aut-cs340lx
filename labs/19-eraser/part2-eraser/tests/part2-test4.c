@@ -15,7 +15,9 @@ int notmain_client() {
     put32(x,0x12345678);   // should be fine.
 
     unlock(&l);
-    trace("expect an error at pc=%p, addr=%p\n", put32, x); 
+    trace("---------------------------------------------\n");
+    trace("expect a store error at pc=%p, addr=%p\n", put32, x); 
+    trace("---------------------------------------------\n");
     put32(x,4);         // error
     return 0;
 }

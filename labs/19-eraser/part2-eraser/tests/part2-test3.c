@@ -20,7 +20,9 @@ int notmain_client() {
 
     unlock(&l);
 
-    trace("expect an error at pc=%p, addr=%p\n", get32, x);
+    trace("--------------------------------------------------\n");
+    trace("expect a load error at pc=%p, addr=%p\n", get32, x);
+    trace("--------------------------------------------------\n");
     return get32(x);    // error
 }
 
