@@ -41,14 +41,14 @@ void eraser_lock(void *l) {
 }
 
 void eraser_unlock(void *l) {
-    unimplemented();
+    lockset[cur_thread_id] = 0;
 }
 
 // mark bytes [l, l+nbytes) as holding a lock.
 void eraser_set_thread_id(int tid) {
     assert(tid);
     assert(tid < MAXTHREADS);
-    unimplemented();
+    cur_thread_id = tid;
 }
 
 int eraser_fn_level(int (*fn)(void), int level) {
