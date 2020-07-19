@@ -12,7 +12,8 @@
 // different levels of eraser.
 enum { ERASER_TRIVIAL = 1, 
     ERASER_SHARED_EX = 2,  
-    ERASER_HIGHEST = ERASER_SHARED_EX
+    ERASER_SHARED = 3,  
+    ERASER_HIGHEST = ERASER_SHARED
 };
 
 // Run eraser on <fn>

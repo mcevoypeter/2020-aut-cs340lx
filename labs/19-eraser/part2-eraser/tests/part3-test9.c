@@ -22,7 +22,7 @@ int notmain_client() {
     unlock(&l);
 
     trace("-----------------------------------------------------\n");
-    trace("should have an error at pc=%p, addr=%p\n", put32, x); 
+    trace("should have an error at pc=%p, addr=%p\n", get32, x); 
     // should have an error
     v = get32(x);
 

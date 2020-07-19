@@ -9,7 +9,7 @@ we will use fake threading calls that indicate:
 
 We do fake threading to make it easier to develop your tool in just a
 few hours.  Among other things, doing it fake rather than real makes
-it easy to seperate out issues where you get race condition in your
+it easy to separate out issues where you get race condition in your
 tool, makes deterministic debugging trivial, and also side-steps issues
 arising from bugs that you might have in your context switching or thread
 package library.
@@ -19,7 +19,7 @@ threads and retarget it.  Tentatively this is planned for next Tuesday
 in order for us to first build a exact cross-checking tool (on Thursday)
 that can record the read and write sets of different pieces of code and
 their instruction traces, which can then be used to compare different
-runs for equivalance.  This tool will make it easy to ruthlessly
+runs for equivalence.  This tool will make it easy to ruthlessly
 test your context switching code in an easy way.  (And also virtual
 memory hacking, speed hacks, interrupt changes, and all sorts of other
 things.) As far as I know, no one has ever used the method we will build,
@@ -103,8 +103,6 @@ Modifications:
 NOTE: The checks should internally make sense even if you don't get exactly the same thing I did.
 (It's fine to get different output.)
 
-
-
         // hack for testing.
         int memcheck_trace_only_fn(int (*fn)(void)) {
             memtrace_p = 1;
@@ -146,24 +144,79 @@ prelab, but here we are.
 
 Here, we just track the locks held during any modification and give an
 error if the lockset goes to empty when a thread is running.    This is
-pretty useless, so we quickly refine it.
+pretty useless --- among other reasons it gives errors for private data
+that no other thread touches --- so we quickly refine it (in Part 3).
 
 For simplicity, assume:
   1. We track exactly one piece of memory.
-  2. We have at most two locks.
+  2. We have at most one lock.
   3. We have exactly two threads.
 
-Because of this you can use a few statically declared global variables,
-no memory allocation, no set operations, no tricky data structures..
-You will just give an error if they touch the one location in the heap
-without a lock.
+Because of these trivializations you can use a few statically declared
+global variables, no memory allocation, no set operations, no tricky
+data structures.  You will just give an error if they touch the one
+location in the heap without a lock.  Again, this would be a pretty
+useless checker for an end-user, we do things this way so we can easily
+debug your shadow memory and helper routines.
 
-We will lift these restrictions in a bit, but in the interests of time, keep it
-dumb for the moment.
+The header files and tests are in `part2-eraser`.
+  - `eraser.h` gives the public interface.  You should implement these so the
+    tests pass.
+  - `eraser-internal.h` gives some possible internal definitions.  (You don't 
+    have to use these.)  
+  - `tests/fake-thread.h` is a fake thread "implementation" that calls into 
+    your eraser tool using the routines defined in `eraser.h`.  The tests use
+    this header; things should "just work".
+
+Note:
+  1. As in Eraser, we track things at a word level (rather than byte).
+  2. The `state_t` structure defined in `eraser-internal.h` is the size of a word (4-bytes).
+  3. Thus, for your shadow memory, you will allocate a region the same size as your heap.
+  4. Given given an address `addr`, remove the lower two bits (to make it word-aligned)
+     and simply add the offset between the heap and the shadow to find the state associated
+     with `addr`.
+
+For `eraser.h`:
+  - `eraser_fn` and `eraser_trace_only_fn` mirror the same routines you
+    built for memcheck: run a routine at user level with checking and
+    return the result it produced.  The `trace_only` implementation does
+    not use shadow memory and simply runs the given routine (this lets you
+    check that your basic setup and trapping is correct).  These routines
+    should allocate and setup the page tables as in memcheck.  (I know:
+    this is a ridiculous way to do things --- we will change this in a
+    bit, I didn't want to change too much at once.)
+
+  - `eraser_mark_alloc`: mark an address range as allocated.  Note that
+    this range will always be at least 4-byte aligned and the `nbytes`
+    always a multiple of 4-bytes.
+
+    Note: by the time this gets called, `kmalloc` will have already
+    `memset` the region to 0.  You may either want to initialize the
+    memory region at the beginning to a new state (e.g., `IGNORE`) or
+    just accept the somewhat confusing re-VIRGIN state transition that
+    will happen.  I did the latter; but the former is cleaner.
+
+  - `eraser_mark_free` will mark the region as `FREE`.
+
+  - `eraser_lock` and `eraser_unlock` will be called by the thread package's
+    locking routines.
+
+  - `eraser_mark_lock`: I was planning on using this for hea-allocated
+    locks  to tell the tool to *not* track a lockset on a lock (since
+    that makes not sense --- locks by design are read and written
+    without holding a lock!).  Currently we just use global locks,
+    so this doesn't matter.  This would have to be called by any lock
+    initialization the thread's package does.  It may be better to just
+    write `eraser_lock` and `eraser_unlock` in such a way that you don't
+    have to do use this routine, however.
+
+  - `eraser_set_thread_id` would be called by the thread's package to tell
+    your tool it switched threads.
+
 
 The tests are in `tests/part2-tests*.c`:
   - `part2-test0.c` (no error) --- basic non-eraser test that makes sure
-    you can still run a routine at user level.
+    you can still run a routine at user level after refactoring.
   - `part2-test1.c` (no error) --- basic non-eraser test that makes sure
     you can still allocate, write and read heap memory.  
   - `part2-test2.c` (no error) --- simple eraser test that has one
@@ -179,12 +232,17 @@ The tests are in `tests/part2-tests*.c`:
 --------------------------------------------------------------------------------------
 #### Part 3: Shared-exclusive Eraser
 
-The previous eraser is pretty useless.  Let us at least track if a second
-thread is touching something!     We'll use the shared exclusive state
-for this.  You'll probably want to track the thread ID for each variable
-touched in the virgin state.  When another thread touches it, go to
-shared-exclusive and initialize the variable's lockset to the current one.
-Give an error if the lockset is empty now or becomes empty later.
+The previous Eraser is pretty useless.  Let us at least track if a second
+thread is touching memory before giving an error!     We'll use the 
+shared exclusive state
+for this.  When a thread touches memory `addr` in a the `SH_VIRGIN` state:
+   1. Transition to `SH_EXCLUSIVE`.  (I misspelled as `SH_EXLUSIVE` initially --- oy.)
+   2. Store the current thread id in the state.
+   3. For subsequent accesses by the same thread, stay in `SH_EXCLUSIVE`.
+   4. For subsequent accesses by a different thread T2, transition to the 
+      `SH_SHARED_MOD` state and initialize the variable's lockset to T2's lockset.
+   5. If the lockset in `SH_SHARED_MOD` becomes empty (even on the initial 
+      transition), give an error.
 
 The tests are in `tests/part3-tests*.c` --- the first two tests are the
 same as above; if I was more clever we'd have a way to flip their behaivor:
@@ -198,15 +256,45 @@ same as above; if I was more clever we'd have a way to flip their behaivor:
   - `part2-test6.c` (no error) --- similar, but has the memory allocation 
     outside of the lock and only has one thread, so no error.
 
+  - There are a bunch of other tests now, too --- just look at them :)
+
+I used the following dumb way to get from lock pointers to a small
+integer that can be stored in a state:
+
+    // should the empty lockset have an id?
+    static uint16_t lock_to_int(void *lock) {
+    #   define MAXLOCKS 32
+        static void *locks[MAXLOCKS];
+
+        // lock=<NULL> is always 0.
+        if(!lock)
+            return 0;
+        for(unsigned i = 0; i < MAXLOCKS; i++) {
+            if(locks[i] == lock)
+                return i+1;
+            if(!locks[i]) {
+                locks[i] = lock;
+                return i+1;
+            }
+        }
+        panic("too many locks!!\n");
+    }
+
+
 --------------------------------------------------------------------------------------
 #### Part 4: Shared Eraser
 
-Now add the shared state.  Tests are in `part4-tests*.c`.
+Now add the shared state.  Recall this state was used to handle the common
+case where one thread intialized data, and then subsequent accesses by
+all other threads were read-only and thus did not use locks.  Tests are in
+`part4-tests*.c`.
 
 --------------------------------------------------------------------------------------
-#### Extensions:
+#### Extensions:  Tons.
 
 There are obviously all sorts of extensions.  
+  0. Handle multiple locks!  Multiple threads!  Multiple allocations!
+
   1. Handle fork/join code that has "happens-before" constraints (e.g.,
      code cannot run before it is forked, code that does a join cannot
      run before the thread it waits on has exited).  Adding these features
@@ -227,6 +315,9 @@ There are obviously all sorts of extensions.
      description works (but perhaps I am incorrec!) so you may have to
      think of an alternative approach.
 
-  4. Lots of other ones to make this tool more useful.  It's obviously pretty crude.
-
-Test.
+  4. Track if locks are double acquired, releases without acquisition, held "too long",
+     acquired and released with no shared state touched (this often will point out bugs 
+     in the tool).
+  5. Provide more useful backtraces and error messages.
+  6. Deadlock detection.
+  7. Lots of other ones to make this tool more useful.  It's obviously pretty crude.
