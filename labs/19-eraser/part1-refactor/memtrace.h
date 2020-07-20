@@ -44,4 +44,6 @@ int memtrace_trap_enabled(memtrace_t m);
 // pointer to shadow memory (should the client allocate?)
 int memtrace_fn(memtrace_t m, memtrace_fn_t fn);
 
+enum { OneMB = 1024 * 1024 };
+
 #endif
