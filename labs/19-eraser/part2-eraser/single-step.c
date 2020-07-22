@@ -10,7 +10,6 @@ void single_step_init(void) {
 
 static unsigned step_cnt = 0;
 static void single_step_handler(uint32_t regs[16], uint32_t pc, uint32_t addr) {
-    trace("mismatch at pc=%p: disabling\n", pc, addr);
     step_cnt++; 
     debug_mismatch_breakpt0_on(pc, single_step_handler);
 }

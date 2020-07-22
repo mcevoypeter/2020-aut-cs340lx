@@ -3,9 +3,10 @@
 #   - "make emitall" it emit .outs for all programs in TESTS
 #   - "make runall" it will run all programs in TESTS
 # should just work
-TESTS = ./tests/part2-test0.c \
-		./tests/part2-test1.c \
-		./tests/part2-test2.c
+TESTS = ./tests/part3-test3.c \
+		./tests/part3-test4.c \
+		./tests/part3-test5.c \
+		./tests/part3-test6.c
 
 # part1-test2 part1-test3 part1-test4
 # part1-test1 part1-test2 part1-test3 part1-test4
@@ -28,7 +29,6 @@ GREP_STR := 'TRACE:\|ERROR:\|PANIC:'
 SYS_OBJS = 	debug.o \
 			eraser.o \
 			interrupt-asm.o \
-			interrupt-vectors.o \
 			last-fault.o \
 			user-mode-asm.o \
 			memcheck.o \

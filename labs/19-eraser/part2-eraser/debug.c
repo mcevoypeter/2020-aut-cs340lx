@@ -3,7 +3,6 @@
 #include "rpi-interrupts.h"
 #include "libc/helper-macros.h"
 #include "debug.h"
-#include "bit-support.h"
 #include "sys-lock.h"
 
 int brk_verbose_p = 0;

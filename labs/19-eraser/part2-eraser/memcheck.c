@@ -20,20 +20,33 @@
 #include "single-step.h"
 #include "user-mode-asm.h"
 
-void memcheck_init(void) {
-    memtrace_init();
+static void check_ldr_str_handler(int is_load_p, uint32_t pc, uint32_t addr) {
+    trace("%s addr=%p, pc=%p\n", is_load_p ? "ldr" : "str", addr, pc);
+    char *shadow_mem = (char *)addr + OneMB;  
+    if (*shadow_mem == SH_FREED) 
+        trace_clean_exit("ERROR:invalid use of freed memory at pc=%p, addr=%p\n", 
+                pc, addr);
 }
 
-// hack to turn off resume / not resume for testing.
-static unsigned mmu_resume_p = 0;
-void memcheck_continue_after_fault(void) {
-    mmu_resume_p = 1;
-}
-
-extern unsigned shadow_check;
 int memcheck_fn(int (*fn)(void)) {
-    shadow_check = 1;
-    return memtrace_fn(fn);
+    memtrace_t m = memtrace_init(check_ldr_str_handler);
+    return memtrace_fn(m, fn);
+}
+
+static void trace_ldr_str_handler(int is_load_p, uint32_t pc, uint32_t addr) {
+    trace("%s addr=%p, pc=%p\n", is_load_p ? "ldr" : "str", addr, pc);
+}
+
+int memcheck_trace_only_fn(int (*fn)(void)) {
+    memtrace_t m = memtrace_init(trace_ldr_str_handler);
+    return memtrace_fn(m, fn);
+}
+
+static void *sys_memcheck_alloc(unsigned n) {
+    void *ptr;
+    asm volatile("swi 1");
+    asm volatile("mov %[result], r0" : [result] "=r" (ptr) ::);
+    return ptr;
 }
 
 // for the moment, we just call these special allocator and free routines.
@@ -41,17 +54,12 @@ void *memcheck_alloc(unsigned n) {
     return sys_memcheck_alloc(n);
 }
 
+static void sys_memcheck_free(void *ptr) {
+    asm volatile("swi 2");
+}
+
 void memcheck_free(void *ptr) {
     sys_memcheck_free(ptr);
 }
 
-void *sys_memcheck_alloc(unsigned n) {
-    void *ptr;
-    asm volatile("swi 1");
-    asm volatile("mov %[result], r0" : [result] "=r" (ptr) ::);
-    return ptr;
-}
 
-void sys_memcheck_free(void *ptr) {
-    asm volatile("swi 2");
-}

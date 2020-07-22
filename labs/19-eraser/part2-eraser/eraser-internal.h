@@ -7,7 +7,7 @@ enum {
     SH_VIRGIN     = 1 << 1,      // writeable, allocated
     SH_FREED       = 1 << 2,
     SH_SHARED = 1 << 3,
-    SH_EXLUSIVE   = 1 << 4,
+    SH_EXCLUSIVE   = 1 << 4,
     SH_SHARED_MOD      = 1 << 5,
 };
 
@@ -20,7 +20,7 @@ typedef struct {
 _Static_assert(sizeof(state_t) == 4, "invalid size");
 
 _Static_assert((SH_INVALID ^ SH_VIRGIN ^ SH_FREED ^ SH_SHARED
-                ^ SH_EXLUSIVE ^ SH_SHARED_MOD) == 0b111111, 
+                ^ SH_EXCLUSIVE ^ SH_SHARED_MOD) == 0b111111, 
                 "illegal value: must not overlap");
 
 static inline int sh_is_set(state_t v, unsigned state) {
