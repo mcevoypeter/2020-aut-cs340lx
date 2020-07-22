@@ -139,13 +139,25 @@ I would start simple:
 Overall this is pretty simple, and I probably should have had you do it in a
 prelab, but here we are.
 
+To make things easier I've broken things down into pieces that add each
+Eraser state incrementatlly.  However, you are welcome to just build
+the full eraser from the beginning.  Note a common confusion  (my fault):
+  - Each piece of the lab eliminates a class of false-positives, and
+    when you re-run previous tests they may give different results.
+
 --------------------------------------------------------------------------------------
 #### Part 2: Useless Eraser
 
-Here, we just track the locks held during any modification and give an
-error if the lockset goes to empty when a thread is running.    This is
+As a first pass we make a useless version of eraser that always gives
+an error if any modification to heap data to an empty lockset.  This is
 pretty useless --- among other reasons it gives errors for private data
 that no other thread touches --- so we quickly refine it (in Part 3).
+
+In terms of the Eraser paper's state machine, there are two states:
+  1. Virgin (as in the paper) which transitions to Shared-modified on
+     any access to a 32-bit word (read or write).
+  2. Shared-modified: gives an error if the lockset for a given 
+     32-bit word is empty (whether or not another thread can access the memory).
 
 For simplicity, assume:
   1. We track exactly one piece of memory.
@@ -175,6 +187,8 @@ Note:
   4. Given given an address `addr`, remove the lower two bits (to make it word-aligned)
      and simply add the offset between the heap and the shadow to find the state associated
      with `addr`.
+  5. Note: This process is identical to your `memcheck` checker.  The only thing that should
+     change are the variable names.
 
 For `eraser.h`:
   - `eraser_fn` and `eraser_trace_only_fn` mirror the same routines you
@@ -196,10 +210,18 @@ For `eraser.h`:
     just accept the somewhat confusing re-VIRGIN state transition that
     will happen.  I did the latter; but the former is cleaner.
 
-  - `eraser_mark_free` will mark the region as `FREE`.
+  - `eraser_mark_free` will mark the region as `FREE`.  We don't actually need this
+     for the current test because of how our `kmalloc` works.  In a full-functioned
+     allocator, the `free()` implementation would likely be modifying the freed
+     memory (to put it on a freelist etc) --- if Eraser does not know the block is
+     freed it will give a bunch of false error reports.  
+ 
+     One way to look at this is that once a pointer is passed to `free()`
+     that block is now private (sort of like the Exclusive state in
+     eraser) and so doesn't need locks to control access.
 
   - `eraser_lock` and `eraser_unlock` will be called by the thread package's
-    locking routines.
+    locking routines.  This should add and remove locks from the lockset.
 
   - `eraser_mark_lock`: I was planning on using this for hea-allocated
     locks  to tell the tool to *not* track a lockset on a lock (since
@@ -213,7 +235,6 @@ For `eraser.h`:
   - `eraser_set_thread_id` would be called by the thread's package to tell
     your tool it switched threads.
 
-
 The tests are in `tests/part2-tests*.c`:
   - `part2-test0.c` (no error) --- basic non-eraser test that makes sure
     you can still run a routine at user level after refactoring.
@@ -221,7 +242,8 @@ The tests are in `tests/part2-tests*.c`:
     you can still allocate, write and read heap memory.  
   - `part2-test2.c` (no error) --- simple eraser test that has one
     "thread" that acquires a lock, allocates memory, writes then reads
-    memory, and releases the lock. Should have no error.
+    memory, and releases the lock. Should have no error because the 
+    memory is always protected by a lock.
   - `part2-test3.c` (error) --- similar, but does the read without
     the lock.   This will have an error because the we aren't tracking
     if state is shared.  
@@ -234,11 +256,13 @@ The tests are in `tests/part2-tests*.c`:
 
 The previous Eraser is pretty useless.  Let us at least track if a second
 thread is touching memory before giving an error!     We'll use the 
-shared exclusive state
-for this.  When a thread touches memory `addr` in a the `SH_VIRGIN` state:
+shared exclusive state as described in the paper 
+for this.  
+
+When a thread T1 touches word `w` in a the `SH_VIRGIN` state:
    1. Transition to `SH_EXCLUSIVE`.  (I misspelled as `SH_EXLUSIVE` initially --- oy.)
-   2. Store the current thread id in the state.
-   3. For subsequent accesses by the same thread, stay in `SH_EXCLUSIVE`.
+   2. Store the current thread id in the associated state.
+   3. For subsequent accesses by the same thread T1, stay in `SH_EXCLUSIVE`.
    4. For subsequent accesses by a different thread T2, transition to the 
       `SH_SHARED_MOD` state and initialize the variable's lockset to T2's lockset.
    5. If the lockset in `SH_SHARED_MOD` becomes empty (even on the initial 
@@ -258,8 +282,12 @@ same as above; if I was more clever we'd have a way to flip their behaivor:
 
   - There are a bunch of other tests now, too --- just look at them :)
 
-I used the following dumb way to get from lock pointers to a small
-integer that can be stored in a state:
+Note that the state structure only has a small 16-bit wod to track the
+lockset (or in our case the single held lock).   I did this so that the
+state could be 32-bits and the shadow memory calculations would be easy.
+This does create a problem of how to map from a lock address to a small
+integer.  I used the following dumb way to get from lock pointers to a
+small integer that can be stored in a state:
 
     // should the empty lockset have an id?
     static uint16_t lock_to_int(void *lock) {
@@ -280,6 +308,7 @@ integer that can be stored in a state:
         panic("too many locks!!\n");
     }
 
+As always, you are adults, so are welcome to do something less basic.
 
 --------------------------------------------------------------------------------------
 #### Part 4: Shared Eraser
@@ -287,10 +316,74 @@ integer that can be stored in a state:
 Now add the shared state.  Recall this state was used to handle the common
 case where one thread intialized data, and then subsequent accesses by
 all other threads were read-only and thus did not use locks.  Tests are in
-`part4-tests*.c`.
+`part4-tests*.c`.  The basic idea: 
+  1. On write in Exclusive you'll transition to Shared Modified (as above).
+  2. On read in Exclusive you'll now transition to Shared.  In shared you keep
+     refining the lockset, but do not give an error if it becomes empty.  If 
+     a write happens, you transition to Shared Modified and (as always) immediately
+     give an error for an empty lockset.
 
 --------------------------------------------------------------------------------------
-#### Extensions:  Tons.
+#### Extension: run at kernel level.
+
+Mr. Han had the very reasonable point that our tool was kinda lame
+because it only checked user-level code.  I figured out a way to run
+most of the code at `SUPER` (kernel) level.
+
+The following is from the lab `lab-real-world-tracing`:
+
+   - We can get around the limit that ARM only allows single-stepping
+     `USER` code by exploiting the following fact.
+
+     AFAIK, the ARM memory operations behave the same no matter the
+     privilege level.  Thus, running memory operations at user level
+     and the rest of the checked code at its expected `SUPER` privilege
+     should give the same results as running all of the code at `SUPER`.
+
+   - We can exploit this fact as follows: When we get a domain fault
+     trap, enable client access to the `track_id` domain (same as we
+     do now), *however*, after setting up a mismatch fault (same as we
+     do now) and before jumping back to the faulting memory operation,
+     change the exception state (the saved stack pointer and the saved
+     co-processor register `spsr` of the interrupted code) so that when we
+     resume we will run that one single memory operation at `USER` mode.
+     When we get the single-step mismatch fault (same as now), we change
+     the exception state so resumption will take use back to `SUPER` mode.
+
+   - In this way, we run all non-faulting memory operations at `SUPER`
+     mode (where they expect to run and hence will give the same results),
+     and only those memory operations that fault at `USER` mode (where
+     such memory operations will behave the same in any case).  As a
+     result, we can monitor all loads and stores without changing the
+     behavior of the checked code.
+
+
+The way you'll have to do this:
+  1. In the domain exception, grab the `spsr` and change the mode to be `USER`.
+  2. Get the stack pointer in `SUPER` mode (you'll have to switch to `SUPER` 
+     grab the `sp` and switch back out).
+  3. Set the `USER` stack pointer to the one you retrieved from `SUPER`.
+  4. Return from the domain exeption.
+
+  5. In the single-step exception do the reverse: swap the `spsr` to be `SUPER`
+     grab the stack pointer from `USER` and set it in `SUPER`.
+  6. Jump back.
+     
+This is a fun hack.
+
+--------------------------------------------------------------------------------------
+#### Find other race bugs.
+
+Useful checks:
+  - Track if locks are double acquired, releases without acquisition, held "too long",
+     acquired and released with no shared state touched (this often will point out bugs 
+     in the tool).
+  - Deadlock detection by adding edges to a hash table and detecting cycles.
+
+Both of these find real bugs in real code.  Recommended.
+
+--------------------------------------------------------------------------------------
+#### Other Extensions:  Tons.
 
 There are obviously all sorts of extensions.  
   0. Handle multiple locks!  Multiple threads!  Multiple allocations!
@@ -315,9 +408,4 @@ There are obviously all sorts of extensions.
      description works (but perhaps I am incorrec!) so you may have to
      think of an alternative approach.
 
-  4. Track if locks are double acquired, releases without acquisition, held "too long",
-     acquired and released with no shared state touched (this often will point out bugs 
-     in the tool).
-  5. Provide more useful backtraces and error messages.
-  6. Deadlock detection.
-  7. Lots of other ones to make this tool more useful.  It's obviously pretty crude.
+  4. Lots of other ones to make this tool more useful.  It's obviously pretty crude.
