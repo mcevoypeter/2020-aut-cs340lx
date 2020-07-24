@@ -7,6 +7,7 @@
 #include "rpi-constants.h"
 #include "mmu.h"
 #include "cpsr-util.h"
+#include "user-mode-asm.h"
 
 enum { OneMB = 1 << 20 };
 enum { dom1 = 1 };
@@ -102,7 +103,7 @@ static void run(unsigned *code, unsigned nbytes) {
 
     map_addr_space(dest_addr, dom1);
 
-    BRANCHTO(dest_addr + sizeof(uint32_t));
+    user_mode_run(dest_addr + sizeof(uint32_t));
     no_return();
 }
 
