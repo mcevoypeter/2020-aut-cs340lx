@@ -46,7 +46,10 @@ void no_return(void) {
 
 
 static void run(unsigned *code, unsigned nbytes) {
-    unimplemented();
+    uint32_t *dest_addr = (uint32_t *)code[0];
+    memcpy(dest_addr, code, nbytes);
+    BRANCHTO((uint32_t)(dest_addr+1));
+    no_return();
 }
 
 void notmain(void) {
