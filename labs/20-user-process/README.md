@@ -139,18 +139,48 @@ For this part:
   2. In pix: write enough code to copy the `code_init` to the right place
      and jump to it.
 
-  3. Implement your MMU code, and make sure things still work.
+  3. Implement your MMU code (copy over from the last lab), and make sure things still work
+     when you enable the mmu.
 
+  4. Finally, go into `code/0-hello` and test that doing everyting from
+     scratch works:
+
+            make 
+            make make-init
+
+     Should generate the `init-hack.h` from scratch and link it into
+     your pix code and run it.  If this doesn't work, I probably screwed
+     something up, not you so yell immediately!
 
 -----------------------------------------------------------------------
 ### Part 2: hello-world at user level
 
-Write enough of pix to ga
+Now you'll start going through an implementing the system calls so that
+you can run the hello program at user level without access to kernel
+memory.
 
+Most of the pix side should be setup already; you will have to pull in your mmu and
+interrupt code.
+
+You'll have to write the following files in `libos`:
   1. write a `memmap` in your libos that will link a given program at `LIBOS_CODE_START`
      and store the linked address as its first word.
 
-  2. Compile `0-hello` --- it should compile the hello there.  Look at `hello.list` to 
-     make sure its linked correctly.  
+  2. `start.S` --- copy `libpi/start.S` and remove most the stuff we don't care about.  Set 
+      up the stack pointer and still call `cstart`.
 
-  3. Implement the rest of the libos to run this using system calls.
+  3. Finish implementing `syscall.S` (not much to it).
+     
+To test it, compile `code/1-hello` --- it should compile the hello there.
+Look at `hello.list` to make sure its linked correctly.  Then do `make
+make-init` to link it into pix.  IF things do not work, you'll have to start
+trimming things down.
+
+
+-----------------------------------------------------------------------
+### Extension: prevent user writes
+
+Currently, the user could write to any location in the kernel.  Not impressive.   Using
+our existing tools, you could imagine setting up a user domain id and a kernel domain
+id and switching between them.  The ARM gives a better approach
+Currently 
