@@ -11,8 +11,8 @@ Last lab built a single, trivial `init` process.  This lab will:
 
 ##### VM Readings
 
-I would suggest rereading cs140e's virtual memory lab [documents]
-(https://github.com/dddrrreee/cs140e-20win/tree/master/labs/14-vm/docs).
+I would suggest rereading cs140e's virtual memory lab 
+[documents](https://github.com/dddrrreee/cs140e-20win/tree/master/labs/14-vm/docs).
 Recall that:
   0. These are annotated, so you should at the very least skim through and read the
      annotations.  I will take a stab at adding some more.
