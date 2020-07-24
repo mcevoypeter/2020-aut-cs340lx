@@ -3,9 +3,9 @@
 
 @ you might have to save less/more registers depending on your handler.
 MK_FN(syscall)
-    push {lr}
+    push {r4-r12, lr}
     swi 0
-    pop {lr}
+    pop {r4-r12, lr}
     bx lr
 
 @ hack to get around the no return problem

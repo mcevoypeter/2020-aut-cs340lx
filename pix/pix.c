@@ -23,10 +23,6 @@ static syscall_t syscalls[SYS_LAST] = {
 
 static int pix_cur_pid = 0;
 
-int syscall_vector(unsigned pc, uint32_t r0, uint32_t r1, uint32_t r2) {
-    unimplemented();
-}
-
 void sys_exit(int code) {
     printk("%d: exiting with code <%d>\n", pix_cur_pid, code);
     clean_reboot();
@@ -39,10 +35,10 @@ int sys_putchar(int c) {
 long do_syscall(uint32_t sysnum, uint32_t a0, uint32_t a1, uint32_t a2) {
     if(sysnum >= SYS_LAST)
         return -1;
-    printk("syscall num = %d: a0=%x (a0='%c')\n", sysnum, a0,a0);
+    printk("\tsyscall num = %d: a0=%x (a0='%c')\n", sysnum, a0,a0);
     syscall_t sys = syscalls[sysnum];
     assert(sys);
-    assert(sysnum == SYS_PUTC);
+    assert(sysnum == SYS_EXIT || sysnum == SYS_PUTC);
     return sys(a0,a1,a2);
 }
 
