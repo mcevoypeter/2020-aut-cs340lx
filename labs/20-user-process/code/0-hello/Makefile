@@ -43,6 +43,7 @@ all:  libs $(OBJS)  $(TEST_BINARIES)#  $(TEST_RUN) # $(TEST_CHECK)
 
 
 make-init: hello.bin
+	make -C ../binary-to-array/
 	../binary-to-array/bin-to-array hello.bin > init-hack.h
 	cp init-hack.h $(PIX_PATH)
 	make -C $(PIX_PATH) 
