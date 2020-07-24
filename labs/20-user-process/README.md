@@ -184,3 +184,8 @@ Currently, the user could write to any location in the kernel.  Not impressive. 
 our existing tools, you could imagine setting up a user domain id and a kernel domain
 id and switching between them.  The ARM gives a better approach
 Currently 
+
+<table><tr><td>
+  <img src="images/permission-bits.png"/>
+</td></tr></table>
+
