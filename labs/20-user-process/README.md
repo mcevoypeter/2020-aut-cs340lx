@@ -180,12 +180,15 @@ trimming things down.
 -----------------------------------------------------------------------
 ### Extension: prevent user writes
 
-Currently, the user could write to any location in the kernel.  Not impressive.   Using
-our existing tools, you could imagine setting up a user domain id and a kernel domain
-id and switching between them.  The ARM gives a better approach
-Currently 
+Currently, the user could write to any location in the kernel.
+Not impressive.   Using our existing tools, you could imagine setting
+up a user domain id and a kernel domain id and switching between them.
+
+The ARM gives a better approach: as you can see in the picture, if you
+set the `APX` bit to 0 and the `AP` bits to 0b01, then the kernel will
+have read/write access but the user will not.  You should do this and
+verify that storing from user level leads to a fault.
 
 <table><tr><td>
   <img src="images/permission-bits.png"/>
 </td></tr></table>
-
