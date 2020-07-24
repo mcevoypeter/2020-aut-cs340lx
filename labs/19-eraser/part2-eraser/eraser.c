@@ -49,9 +49,24 @@ static void ldr_str_handler(int is_load_p, uint32_t pc, uint32_t addr) {
             shadow_word->state = SH_EXCLUSIVE;
             shadow_word->tid = cur_thread_id;
             break;
+        case SH_SHARED:
+            // refine lockset
+            shadow_word->tid = cur_thread_id;
+            shadow_word->ls = lock_to_int(lockset[cur_thread_id]);
+            if (is_load_p) {
+                trace("addr=%p staying in SHARED\n", addr);
+                break;
+            }
+            shadow_word->state = SH_SHARED_MOD;
+            trace("addr=%p SHARED -> SHARED_MOD\n");
+            goto shared_mod;
         case SH_EXCLUSIVE:;
             if (shadow_word->tid == cur_thread_id) {
                 trace("addr=%p staying in EXCLUSIVE\n", addr);
+                break;
+            } else if (is_load_p) {
+                shadow_word->state = SH_SHARED;
+                trace("addr=%p EXCLUSIVE -> SHARED\n", addr);
                 break;
             }
             // set variable's lockset to current thread's lockset
@@ -59,12 +74,13 @@ static void ldr_str_handler(int is_load_p, uint32_t pc, uint32_t addr) {
             shadow_word->tid = cur_thread_id;
             shadow_word->ls = lock_to_int(lockset[cur_thread_id]);
             trace("addr=%p EXCLUSIVE -> SHARED_MOD\n", addr);
-        case SH_SHARED_MOD:
+
+shared_mod: case SH_SHARED_MOD:
             if (shadow_word->ls == 0)
                 trace_clean_exit(
-                        "ERROR:lockset for thread=%u empty when %s addr=%p"
-                        " in shared-modified state\n", cur_thread_id, 
-                        is_load_p ? "reading" : "writing", addr
+                    "ERROR:lockset for thread=%u empty when %s addr=%p"
+                    " in shared-modified state\n", cur_thread_id, 
+                    is_load_p ? "reading" : "writing", addr
                 );
             break;
         default:

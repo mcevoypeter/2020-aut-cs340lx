@@ -209,7 +209,7 @@ typedef enum {
 } reason_t;
 
 static void single_step_handler(uint32_t regs[16], uint32_t pc, uint32_t addr) {
-    trace("got breakpoint mismatch at pc=%p, addr=%p\n", pc, addr);
+    //trace("got breakpoint mismatch at pc=%p, addr=%p\n", pc, addr);
     memtrace_trap_on(m);
     debug_breakpt0_off(pc-4);
 }
@@ -231,8 +231,8 @@ void data_abort_vector(unsigned lr) {
 
     switch (reason) {
         case domain_section: 
-            trace("got domain section fault for addr %p, at pc %p, for reason %b\n",
-                    fault_addr, lr, reason);
+            //trace("got domain section fault for addr %p, at pc %p, for reason %b\n",
+                    //fault_addr, lr, reason);
             memtrace_trap_off(m);
             dom_perm_set(shadow_id, DOM_client);
             uint32_t instr = *(uint32_t *)lr;

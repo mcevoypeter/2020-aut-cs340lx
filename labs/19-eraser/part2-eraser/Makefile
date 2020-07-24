@@ -3,13 +3,17 @@
 #   - "make emitall" it emit .outs for all programs in TESTS
 #   - "make runall" it will run all programs in TESTS
 # should just work
-TESTS = ./tests/part3-test3.c \
-		./tests/part3-test4.c \
-		./tests/part3-test5.c \
-		./tests/part3-test6.c
+#TESTS = ./tests/part3-test3.c \
+		#./tests/part3-test4.c \
+		#./tests/part3-test5.c \
+		#./tests/part3-test6.c \
+		#./tests/part3-test7.c \
+		#./tests/part3-test8.c \
+		#./tests/part3-test9.c
 
-# part1-test2 part1-test3 part1-test4
-# part1-test1 part1-test2 part1-test3 part1-test4
+TESTS = ./tests/part4-test0.c \
+		./tests/part4-test1.c \
+		./tests/part4-test2.c
 
 # add each test here that you want to check.
 # TESTS = c # part1-test1 
