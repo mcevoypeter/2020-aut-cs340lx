@@ -8,7 +8,7 @@ void notmain(void) {
 
     // GPIO
     unsigned bad_addr = 0x20000000;
-    printk("going to dereference GPIO pointer=%p pc=%p\n", bad_addr, PUT32);
-    PUT32(bad_addr, 0);
+    printk("going to read GPIO pointer=%p pc=%p\n", bad_addr, PUT32);
+    GET32(bad_addr);
     printk("should not get here\n");
 }
