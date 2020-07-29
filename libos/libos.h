@@ -18,4 +18,7 @@ int sys_getpid(void);
 int sys_fork(void);
 int sys_clone(void);
 
+// probably should not do this, but for themoment.
+int printk(const char *format, ...);
+
 #endif
