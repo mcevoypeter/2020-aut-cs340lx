@@ -248,3 +248,21 @@ The four tests check that increasingly stringent permissions work:
     in the lower 1MB) and jump to them there, then you *can* mark the low 1MB as
     inaccessible.   This is sort of like our dynamic code generation lab but you
     can use the hard-coded instruction values.
+
+
+-----------------------------------------------------------------------
+### Part 4: trivial clone()
+
+Today's lab is pretty simple: make a clone.
+  1. You should make a structure of `env` structures and initialize them.
+  2. Do your init process in terms of this.
+  3. Make sure it works to switch to it and run.
+
+
+Things you will have to do:
+  1. Make sure you map physical memory at some constant location that you can go and write to
+     it in the kernel.
+  2. Allocate unique asids for each process you run.
+  3. Allocate page tables in the same identity map location (just to start) and make 
+     sure you initialize this memory.
+  4. Call `schedule` in exit.
