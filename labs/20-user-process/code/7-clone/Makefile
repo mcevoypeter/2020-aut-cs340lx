@@ -14,9 +14,9 @@ endif
 include $(CS240LX_2021_PATH)/libpi/includes.mk
 
 
-LIBOS_PATH := $(CS340LX_2021_PATH)/libos.staff
+LIBOS_PATH := $(CS340LX_2021_PATH)/libos
 LIBOS := $(LIBOS_PATH)/libos.a
-PIX_PATH := $(CS340LX_2021_PATH)/pix.staff
+PIX_PATH := $(CS340LX_2021_PATH)/pix
 MEMMAP := $(LIBOS_PATH)/memmap
 START := $(LIBOS_PATH)/start.o
 
