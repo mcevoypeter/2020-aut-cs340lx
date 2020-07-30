@@ -1,10 +1,11 @@
 ## Processes
 
-Last lab built a single, trivial `init` process.  This lab will: Build
-a more full-fledged version so we can have more than one process, give
-it ownership of resources, share ownership, and handle exceptions in
-your library OS.
+Last lab built a single, trivial `init` process.  This lab will: 
 
+   0. Increase your r/pi memory size so that it's worth managing.
+   1. Build a more full-fledged version so we can have more than one process, give
+      it ownership of resources, share ownership, and handle exceptions in
+      your library OS.
 
 It may help clarify various magic numbers later to keep the following
 derivation in mind:
