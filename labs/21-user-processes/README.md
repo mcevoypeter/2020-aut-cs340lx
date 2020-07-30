@@ -124,7 +124,7 @@ So we're do things right:
 
    2. Do what you need to to increase it. 
 
-###### Writing mailbox code to check memory size (and other things)
+##### Writing mailbox code to check memory size (and other things)
 
 If you look through the (unfortunately incomplete) 
 [mailbox writeup](https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface)
@@ -135,15 +135,13 @@ number, ethernet address, etc.  So it's worth figuring out how to do it.
 So that's what we will do.  Some hints:
 
    1. As always: if you want to write the code completely from scratch,
-      I think doing so is a valuable exercise.
-      However, in the interests of time I put some starter code in
-      `part0-mailbox/`.  Extend it to query for physical memory size
-      along with a couple of other things that seem useful.
+      I think doing so is a valuable exercise.  However, in the interests
+      of time I put some starter code in `part0-mailbox/`.  Extend it
+      to query for physical memory size along with a couple of other
+      things that seem useful.
 
-   2. For the life of me, other than that wiki page, I cannot
-      find any information in the main Broadcom PDF.  
-      [This blog](http://magicsmoke.co.za/?p=284) does have a clear writeup,
-      but it would be nice to have a primary source:
+   2. For the life of me, other than that wiki page, I cannot find any 
+      information in the main Broadcom PDF.  [This blog](http://magicsmoke.co.za/?p=284) does have a clear writeup, but it would be nice to have a primary source:
 
    3. I included a simple `ATAG` implementation --- this isn't a super
       useful interface on the pi since it (appears to) only provide three
@@ -162,7 +160,7 @@ Rules:
      be worth experimenting with sending a larger buffer and checking
      the result.
 
-###### Increasing memory by replacing the firmware
+##### Increasing memory by replacing the firmware
 
 Ok, our memory size sucks: So how to change it?   I spent a surprisingly
 long time fighting with this problem going in circles on forum/blog posts:
