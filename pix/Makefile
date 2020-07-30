@@ -18,7 +18,7 @@ include $(CS240LX_2021_PATH)/libpi/includes.mk
 CFLAGS += -Wno-unused-function -Wno-unused-variable 
 
 # add all the .h's as dependencies, libpi and the makefile.
-DEPS := $(MEMMAP) $(LPI) $(wildcard ./*.h) ./Makefile 
+DEPS := $(MEMMAP) $(LPI) $(wildcard ./*.h) ./Makefile ./init-hack.h
 LIBS = $(LPI)  
 
 all:  libs $(OBJS) $(NAME).bin $(NAME).run # $(TEST_RUN) # $(TEST_CHECK)

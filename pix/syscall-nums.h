@@ -7,6 +7,9 @@
 #define SYS_PUTC 3
 #define SYS_PUT_INT 4
 
-#define SYS_LAST 4
+#define SYS_GETPID 5
+#define SYS_CLONE 6
+
+#define SYS_LAST 7
 
 #endif
