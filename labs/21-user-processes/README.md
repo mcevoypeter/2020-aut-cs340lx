@@ -8,9 +8,7 @@ Last lab built a single, trivial `init` process.  This lab will:
       your library OS.
 
 --------------------------------------------------------------------------
-#### Background: useful facts
-
-##### PAGE TABLE STUFF
+#### Background: page table stuff (read this)
 
 It may help clarify various magic numbers later to keep the following
 derivation in mind:
@@ -39,8 +37,8 @@ readings listed below, the following header files are useful:
     The header `armv6-coprocessor-asm.h` has many of these instructions
     already setup.
 
-
-##### TLB Stuff
+--------------------------------------------------------------------------
+#### Background: TLB stuff (read this)
 
 Given that address translations can happen on every instruction fetch
 or even more often (for load and stores) translation can easily be
