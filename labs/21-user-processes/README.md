@@ -124,7 +124,7 @@ So we're do things right:
 
    2. Do what you need to to increase it. 
 
-####### Writing mailbox code to check memory size (and other things)
+###### Writing mailbox code to check memory size (and other things)
 
 If you look through the (unfortunately incomplete) 
 [mailbox writeup](https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface)
@@ -162,7 +162,7 @@ Rules:
      be worth experimenting with sending a larger buffer and checking
      the result.
 
-####### Increasing memory by replacing the firmware
+###### Increasing memory by replacing the firmware
 
 Ok, our memory size sucks: So how to change it?   I spent a surprisingly
 long time fighting with this problem going in circles on forum/blog posts:
