@@ -41,11 +41,10 @@ readings listed below, the following header files are useful:
 #### Background: TLB stuff (read this)
 
 Given that address translations can happen on every instruction fetch
-or even more often (for load and stores) translation can easily be
-a bottleneck.  To try to control this, modern machines use a cache
-(confusingly) called a "translation lookaside buffer" (TLB) to cache
-page table entries so they don't have to look these up in memory.
-
+or even more often (for load and stores) translation can easily be a
+bottleneck.  To try to control this, modern machines use a cache called
+(confusingly) a "translation lookaside buffer" (TLB) to cache page table
+entries so they don't have to look these up in memory.
 
 Since processes usually have private address spaces, they frequently map
 the same virtual page to a different physical page.  For example, if you
@@ -59,12 +58,12 @@ The simplest solution: flush the TLB on every context switch.  Easy,
 but potentially costly in terms of subsequent page table faults if we
 switch often.  As a result, most modern architectures will tag each
 TLB entry with a unique small integer, an "address space identifier"
-(ASID) that corresponds to the owning process.  (A common number of ASIDs
-is 64.)  You only need to flush the TLB when you resuse an ASID (or,
-more precisely, entries for the ASID) .  For example, if the process
-dies and you realloce that ASID or are more processes than ASIDs, so
-you have to recycle them.
-
+(ASID) that corresponds to the owning process.  (A common number of
+ASIDs is 64.)  When you switch address spaces, instead of flushing the
+TLB, you simply switch the current ASID, and the hardware will only use
+entries with that ASID tag.  You only need to flush entries for an ASID
+when you reuse it, such as when a process dies and you realloce that
+ASID or are more processes than ASIDs, so you have to cycle between them.
 
 ARM ASID factoids:
   - ***NEVER USE ASID 0***: as you may recall from our virtual memory
