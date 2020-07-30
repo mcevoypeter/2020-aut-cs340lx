@@ -7,6 +7,11 @@ Last lab built a single, trivial `init` process.  This lab will:
       it ownership of resources, share ownership, and handle exceptions in
       your library OS.
 
+--------------------------------------------------------------------------
+#### Background: useful facts
+
+##### PAGE TABLE STUFF
+
 It may help clarify various magic numbers later to keep the following
 derivation in mind:
 
@@ -34,8 +39,63 @@ readings listed below, the following header files are useful:
     The header `armv6-coprocessor-asm.h` has many of these instructions
     already setup.
 
+
+##### TLB Stuff
+
+Given that address translations can happen on every instruction fetch
+or even more often (for load and stores) translation can easily be
+a bottleneck.  To try to control this, modern machines use a cache
+(confusingly) called a "translation lookaside buffer" (TLB) to cache
+page table entries so they don't have to look these up in memory.
+
+
+Since processes usually have private address spaces, they frequently map
+the same virtual page to a different physical page.  For example, if you
+`fork` our `init` process it will have a translations for virtual address
+`0x800000` that maps it to a different physical page.  Caching such
+translations would cause incorrect results if the translation for one
+process P1 was cached and we switched to P2 and it accessed the same
+address --- the TLB would incorrectly use P1's translation.  
+
+The simplest solution: flush the TLB on every context switch.  Easy,
+but potentially costly in terms of subsequent page table faults if we
+switch often.  As a result, most modern architectures will tag each
+TLB entry with a unique small integer, an "address space identifier"
+(ASID) that corresponds to the owning process.  (A common number of ASIDs
+is 64.)  You only need to flush the TLB when you resuse an ASID (or,
+more precisely, entries for the ASID) .  For example, if the process
+dies and you realloce that ASID or are more processes than ASIDs, so
+you have to recycle them.
+
+
+ARM ASID factoids:
+  - ***NEVER USE ASID 0***: as you may recall from our virtual memory
+    caching lab, we follow the ARM suggestion and use ASID 0 to handle
+    some cache coherence issues.
+  - The ARM has 64 ASIDs.  
+  - You will have to track which process has which ASID and correctly switch this 
+    when you switch address spaces.  
+  - You'll also (as stated above) have to flush when you could reuse it.
+
+  - The ARM TLB, like all(?) TLBS lets you pin TLB entries so they cannot
+    be replaced.  An interesting embedded hack (that I don't know of
+    people using): for small processes, you can get rid of page tables
+    entirely and simply pin the few TLB entries the process needs so that
+    it never gets a TLB fault (and hence does not need a page table).
+    We might do this for fun later.  Makes processes very lightweight and
+    small.  We could perhaps use this hack to make thousands of processes.
+
+  - As a clarification: since we currently do not pin TLB entries for
+    correctness we could simply ignore the ASID and always flush the
+    TLB on every switch.  Things should still work. Similarly, we could
+    always switch to a virgin unused ASID on every context switch (or,
+    even, on every instruction).  Switching ASIDs can be used as a
+    quick cache cleaning method in some cases.  (Exmaple uses: to test
+    your cache cleaning / invalidation code or for getting performance
+    counts on repeated runs of a routine). 
+
 --------------------------------------------------------------------------
-#### VM Readings
+#### Background: VM Readings
 
 I would suggest rereading cs140e's virtual memory lab 
 [documents](https://github.com/dddrrreee/cs140e-20win/tree/master/labs/14-vm/docs).
@@ -236,7 +296,6 @@ restructuring step that you have a working system, then run:
 and verify it completes.
 
 Make the following changes and run the checks after each one:
-
 
 
 ###### 1. Do correct global / not-global mappings.
