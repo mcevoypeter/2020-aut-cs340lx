@@ -183,7 +183,7 @@ long time fighting with this problem going in circles on forum/blog posts:
     least for our bare-metal approach, possibly the *only* valid
     method.  Credit to this post on making [the pi boot as fast as
     possible](https://www.raspberrypi.org/forums/viewtopic.php?t=84734).
-    Without it, I might have given up!
+    Without it, I might have given up.
 
 So, great: let's change your memory to a reasonable amount from "first principles":
 
@@ -197,10 +197,11 @@ So, great: let's change your memory to a reasonable amount from "first principle
   3. Copy these files to your SD card, and create a new `config.txt`
      that is simply:
 
-        # config.txt: save the old one!
-        gpu_mem=16
-        start_file=start_cd.elf
-        fixup_file=fixup_cd.dat
+
+            # config.txt: save the old one!
+            gpu_mem=16
+            start_file=start_cd.elf
+            fixup_file=fixup_cd.dat
 
   4. Plug the SD card back in your pi (after doing a `sync`) and re-run
      your mailbox code to see that the memory size: it should be 496MB.
