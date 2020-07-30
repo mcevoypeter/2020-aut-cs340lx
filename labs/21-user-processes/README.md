@@ -35,7 +35,7 @@ readings listed below, the following header files are useful:
     already setup.
 
 --------------------------------------------------------------------------
-##### VM Readings
+#### VM Readings
 
 I would suggest rereading cs140e's virtual memory lab 
 [documents](https://github.com/dddrrreee/cs140e-20win/tree/master/labs/14-vm/docs).
@@ -85,37 +85,40 @@ but it can't hurt to see a more professional take.
 ---------------------------------------------------------------------
 #### Part 0: figure out how much memory we have
 
-The box our r/pi came in claims 512MB of physical memory (as does the
-r/pi foundation website).  *However* a good chunk of this can be devoted
-to the GPU not the CPU, depending how parameters are set.    So let's 
-verify how much we have.
+The box our r/pi came in claims 512MB of physical memory (as does the r/pi
+foundation website).  *However*, depending on how parameters are set, a
+good chunk of this memory can be claimed by the GPU and thus not available
+for our code running on the CPU.    So before we start messing with 
+physical memory more, let's actually verify how much we have.
 
 There are two ways I know of:
    1. [ATAGS](http://www.simtec.co.uk/products/SWLINUX/files/booting_article.html#ATAG_MEM)
       which is a primitive take on a "key-value" store used by the pi
-      firmware bootloader (`bootcode.bin`): it writes these o8ut starting
+      firmware bootloader (`bootcode.bin`): it writes these out starting
       at address `0x100` (allegedly it will also pass this address in
-      register `r2`).  You can traverse these until you hit `ATAG_NONE`.
-      When I did so, the pi claimed it had 128MB of physical memory.  This 
-      was way too small, so I thought I had misinterpreted (or the bootloader
-      had screwed up).
+      register `r2` but I have not checked).  You can traverse these
+      until you hit `ATAG_NONE`.  When I did so, the pi claimed it had
+      128MB of physical memory.  This was way too small, so I thought
+      I had misinterpreted (or the bootloader had screwed up).
 
    2. [mailboxes](https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface)
-      which are a way to send messages to the GPU and receive a response.
-      This interface is not super-intuitive, and the main writeup is
-      written in a passive-declarative voice style that makes it hard
-      to figure out what to do.  (One key fact: the memory used to send
-      the request is re-used for replies.)  When I used this, I also got 
-      128MB.  
+      gives a way to send messages to the GPU and receive a response.
+      You can use this to query and configure the hardware.  The mailbox
+      interface is not super-intuitive, and the main writeup uses
+      passive-declarative voice style that makes it hard to figure out
+      what to do.  (One key fact: the memory used to send the request
+      is re-used for replies.)  When I got the mailbox working, it also
+      claimed 128MB.
 
 So, two different calculations, same astonishingly tiny result ---
 starting to think it was computed right.  This is bad, since we some
-of our interrupt stack addresses are above 128MB!   It's unclear what
-the consequence is, but it's likely that the GPU can randomly corrupt
-our interrupt stack.  (Since we weren't using graphics, perhaps we were
-getting away with this, but it's wildly bad form.)
+of our interrupt stack addresses are above 128MB!   It's unclear
+what the consequence of using memory the GPU thinks is for it, but a
+likely result is that the GPU can randomly corrupt our interrupt stack.
+(Since we weren't using graphics, perhaps we were getting away with this,
+but it's wildly bad form.)
 
-Now you'll:
+So we're do things right:
    1. Write code to get what the GPU thinks your physical memory size is
    ("Trust but verify --- Stalin.)
 
