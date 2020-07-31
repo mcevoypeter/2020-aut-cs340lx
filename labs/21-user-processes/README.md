@@ -427,6 +427,48 @@ do:
     }
 
 
+###### 2. Implement `sys_clone`
+
+
+On the pix side:
+   1. You'll have to duplicate the page table.  You'll scan through it and for
+      every
+  2. Add the `sys_clone` system call.  The main issue on the pix side is
+     duplicating the page table.    The main issue on the libos side is
+     writing a special trampoline that can save state before the syscall
+     and resume after (since the kernel does not).
+  3. Fix `sys_exit` to run another process if there is another one.
+
+###### 1. Alias physical memory.
+
+As you'll discover in the next step, you often want to write to memory
+in a process that is not running.    In theory you could change address
+spaces to do so, but if you want to write from process A to process B
+this doesn't work well.
+
+Instead many OSes use the following hack:
+  1. Alias all of phsical memory (as one contiguous chunk) to a known
+     offset as a global mapping that will be valid in all address spaces.
+     For an offset we use `PHYS_OFFSET` which is `0x80000000` (defined in
+     `pix-constants.h`)
+
+  2. When kernel code wants to write to physical memory, it simply
+     adds this
+     offset to the address.
+
+For exmaple, to copy one physical section to another when the MMU is on, simply
+do:
+
+    void *phys_addr(void *addr) {
+        assert(addr < PHYS_MEM_SIZE);
+        return (void*)((char*)addr+PHYS_OFFSET);
+    }
+    void copy_section(void *to,  void *from) {
+        memcpy(phys_addr(to), phys_addr(from), OneMB);
+    }
+
+
+
 ###### 1. Finish `sys_exit` to exit.
 
 
