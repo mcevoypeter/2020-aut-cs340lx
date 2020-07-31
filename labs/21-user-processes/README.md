@@ -278,7 +278,8 @@ downsides to this increase:
 ---------------------------------------------------------------------
 #### Part 1: re-factor your code
 
-***STILL WRITING THIS***
+***UNFORTUNATELY you will have to run your regressions by hand until
+I can hack the makefile.***
 
 Before making `fork`, there are some simple refectoring steps you should
 make to your `init` code.  We describe these below.  ***Before you modify
@@ -295,7 +296,6 @@ restructuring step that you have a working system, then run:
 and verify it completes.
 
 Make the following changes and run the checks after each one:
-
 
 ###### 1. Do correct global / not-global mappings.
 
