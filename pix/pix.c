@@ -126,22 +126,22 @@ static void map_addr_space(uint32_t *user_code) {
     // 2. setup mappings
 
     // map the first MB: shouldn't need more memory than this.
-    mmu_map_section(pt, 0x0, 0x0, kernel_dom)->AP = no_access;
+    mmu_map_global_section(pt, 0x0, 0x0, kernel_dom)->AP = no_access;
     // map the page table: for lab cksums must be at 0x100000.
-    mmu_map_section(pt, 0x100000,  0x100000, kernel_dom)->AP = no_access;
+    mmu_map_global_section(pt, 0x100000,  0x100000, kernel_dom)->AP = no_access;
     // map stack (grows down)
-    mmu_map_section(pt, STACK_ADDR-OneMB, STACK_ADDR-OneMB, kernel_dom)->AP = read_only;
+    mmu_map_global_section(pt, STACK_ADDR-OneMB, STACK_ADDR-OneMB, kernel_dom)->AP = read_only;
     // map user code
-    mmu_map_section(pt, user_code[0], user_code[0], kernel_dom)->AP = read_write;
+    mmu_map_private_section(pt, user_code[0], user_code[0], user_dom)->AP = read_write;
 
     // map the GPIO: make sure these are not cached and not writeback.
     // [how to check this in general?]
-    mmu_map_section(pt, 0x20000000, 0x20000000, kernel_dom)->AP = no_access;
-    mmu_map_section(pt, 0x20100000, 0x20100000, kernel_dom)->AP = no_access;
-    mmu_map_section(pt, 0x20200000, 0x20200000, kernel_dom)->AP = no_access;
+    mmu_map_global_section(pt, 0x20000000, 0x20000000, kernel_dom)->AP = no_access;
+    mmu_map_global_section(pt, 0x20100000, 0x20100000, kernel_dom)->AP = no_access;
+    mmu_map_global_section(pt, 0x20200000, 0x20200000, kernel_dom)->AP = no_access;
 
     // if we don't setup the interrupt stack = super bad infinite loop
-    mmu_map_section(pt, INT_STACK_ADDR-OneMB, INT_STACK_ADDR-OneMB, kernel_dom)->AP = no_access;
+    mmu_map_global_section(pt, INT_STACK_ADDR-OneMB, INT_STACK_ADDR-OneMB, kernel_dom)->AP = no_access;
 
     // 3. install fault handler to catch if we make mistake.
     mmu_install_handlers();
@@ -149,7 +149,7 @@ static void map_addr_space(uint32_t *user_code) {
     // 4. start the context switch:
 
     // set up r/w permissions for the kernel and user domains 
-    write_domain_access_ctrl(0b01 << kernel_dom*2); // | 0b01 << user_dom*2);
+    write_domain_access_ctrl(0b01 << kernel_dom*2 | 0b01 << user_dom*2);
 
     // use the sequence on B2-25
 #   define FIRST_PID 0x140e

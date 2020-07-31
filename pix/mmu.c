@@ -62,7 +62,7 @@ static void fld_set_base_addr(fld_t *f, unsigned addr) {
 //  - executable
 //  - don't use APX
 //  - TEX,A,B: for today mark everything as non-cacheable 6-15/6-16 in armv1176
-fld_t * mmu_map_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom) {
+fld_t * mmu_map_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom, uint8_t nG) {
     assert(dom < 16);
     assert(is_aligned(va, 20));
     assert(is_aligned(pa, 20));
@@ -75,7 +75,7 @@ fld_t * mmu_map_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom) {
     // hmm: if you want to alias our stuff, you would make this global.
     // possibly have them flip the most number of bits and have the same
     // result?
-    pte->nG = 0;
+    pte->nG = nG;
     pte->APX = 0;
     pte->TEX = 0;
     pte->AP = AP_rw;
@@ -92,12 +92,25 @@ fld_t * mmu_map_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom) {
     return pte;
 }
 
+enum {
+    global = 0,
+    private = 1
+};
+
+fld_t *mmu_map_global_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom) {
+    return mmu_map_section(pt, va, pa, dom, global);
+}
+
+fld_t *mmu_map_private_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom) {
+    return mmu_map_section(pt, va, pa, dom, private);
+}
+
 void mmu_map_sections(fld_t *pt, unsigned va, unsigned pa, unsigned nsec, uint32_t dom) {
     assert(dom < 16);
     assert(is_aligned(va, 20));
     assert(is_aligned(pa, 20));
     for(unsigned i = 0; i < nsec; i++) {
-        mmu_map_section(pt, va,pa,dom);
+        mmu_map_section(pt, va,pa,dom, global);
         va += OneMB;
         pa += OneMB;
     }

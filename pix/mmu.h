@@ -34,7 +34,10 @@ fld_t *mmu_pt_alloc_at(void *addr, unsigned nbytes);
 
 
 // map a 1mb section starting at <va> to <pa>
-fld_t *mmu_map_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom);
+fld_t *mmu_map_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom, uint8_t nG);
+fld_t *mmu_map_global_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom);
+fld_t *mmu_map_private_section(fld_t *pt, uint32_t va, uint32_t pa, uint32_t dom);
+
 // map <nsec> 1mb sections starting at <va> to <pa>
 void mmu_map_sections(fld_t *pt, unsigned va, unsigned pa, unsigned nsec, uint32_t dom);
 
