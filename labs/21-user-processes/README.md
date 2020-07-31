@@ -330,34 +330,95 @@ After this change your checks should work as before.
 
 We currently just reference and use random physical memory locations.
 This is a recipe for disaster.  You should now switch your code to
-explicitly allocate, reference count, free physical sections.
+explicitly allocate, reference count, free physical sections so you
+have a legitimate bookkeeping of what is in use.  I checked in a simple
+reference counting implementation in `libpi/libc/refs.h` that you can
+use --- it's stupid but should be correct.
 
-Important:
-  1. our 
+I added calls to this code to the mapping routines above. 
+
+###### 3. Put everything in an environment.
+
+We'll put everyting for a process in the `env_t` structure in `pix.h`.
+I statically declared `MAX_ENV` of these (in `pix-internal.h`) and used
+the convention that a null `init` meant it was free.
+
+You'll need:
+  - A address for `init` (this is the address you jumped to for init).
+  - A unique pid (I just incremented a global counter that started at 1).
+  - A unique ASID that is not 0 and not shared with any other env.    You
+    may want to use the `refs` vector to track this.
+  - A pointer to the page table.  Each page table is 16k bytes and
+    we won't have more than 64 of them, so I placed all page tables
+    on the 1MB page starting at `0x100000` (as now) back to back.
+    That way their physical and virtual address is the same.  Make sure
+    you allocate this page so it doesn't get used for anything else!
+  - For today we won't use the registers.
+
+You should set up your routine that would jump to the init code in the 
+last lab to work if you call it with an environment.
 
 
-###### 2. Fix 
+###### 4. Fix the call to `set_procid_ttbr0`
 
 The original `set_procid_ttbr0` call looks something like:
 
     set_procid_ttbr0(0x140e, dom_id, pt);
 
-which is 
+which is totally broken but just happened to work.   You should change
+it to use the ASID from the current `env` rather than `dom_id` (as well
+as it's pid instead of `0x140e`).  The original call happened to work
+because `dom_id` was 1, which is a perfectly fine ASID.  
+
+After you run this, you should be able to check that the values are what
+you expect
+
+        // use assertions to check.
+        printk("asid=%d\n", cp15_procid_rd() % 64);
+        printk("tlbr0=%p\n", cp15_ttbr0_rd());
+        printk("ttbr1=%p\n", cp15_ttbr1_rd());
 
 
-to use the ASID for each address space
-rather than `dom_id` --- the original call was false, but happened
-to work since `dom_id` was 1, which is a perfectly fine ASID.
-
-    This call takes the `pid` as its first argument --- you can pass any
-    integer in here that you want
-
-(0x140e, 1, pt);
+Note, that the `pid` value is uninterpreted by the hardware.  It just
+stores and returns it, it will not use it.  (We won't either, but
+it can be useful for sanity checking.)
 
 
-Modify the `mmu.c` to make any kernel mapping public (so that any 
-     process can use it in the TLB) and any process-specific mapping
-     private (so other processes don't incorrectly use its mapping in 
+
+---------------------------------------------------------------------
+#### Part 1: add sys_clone (or sys_fork)
+
+For `sys_clone` you'll need a couple of extra things:
+  1. Alias all of physical memory to a known offset so that if you want to read
+     or write any physical address you can just add the offset to the address
+     you want to write.
+  2. Add the `sys_clone` system call.  The main issue on the pix side is
+     duplicating the page table.    The main issue on the libos side is
+     writing a special trampoline that can save state before the syscall
+     and resume after (since the kernel does not).
+  3. Fix `sys_exit` to run another process if there is another one.
+
+###### 1. Alias physical memory.
+
+For global
+     kernel entries you can just copy the page table entry to the same offset in
+     the new page table.
+For non-global allocated entries
+     you need to allocate a new page and 
+
+
+###### 1. Finish `sys_exit` to exit.
+
+
+In `sys_exit` you should look for the next runnable process (i.e., has a 
+non-null `init`).  If you don't find one, reboot.
+If you do find one, 
+
+
+Note: just to remind you, the code that 
+
+You'll want each active enviroment 
+
      the TLB).
 
 
@@ -366,42 +427,3 @@ existing tests:
   1. Declare an array of `env_t` structures that is `MAX_NENV` big.
   2. Write an allocator and free to manage entries from this array.
   3. Write an allocator and free routine to manage `MAX_SEC` 1MB sections.
-
-
-
-
-
-***Still rewriting below and figuring things out.***
-
-For today's lab, and in general, many of our pix modifications should
-have no observable change to user process behavior.   Thus, an easy way 
-to detect if a pix modification has a bug is to:
-  1. Run a bunch of user processes before doing the modification, recording
-     the instructions they run and their register values.
-  2. Do the modification.
-  3. Re-run the user programs, checking that the traces remain the same.
-
-I think all operating systems should do this, but AFAIK no one has ever
-thought to do this trick.  (At best they may compare `printf` output's,
-which can miss many errors and is not informative about when exactly
-the problem occured.)
-
-We are going to set up your single-stepping code so that you can trace
-each user-process, compute a running hash of what it is doing,
-and then print the hash when it exits.  We use a hash rather than logging
-all operations because:
-  1. The hash will be sufficient to detect errors.
-  2. It sidesteps the need to have a logging framework and allocate memory for the 
-     moment (since pix is in flux).
-The downside will be that a hash isn't super informative for debugging
-since you won't know when the divergence happened.  We will remove this
-limiation when we decide on how to do kernel memory allocation.
-
-As you make modifications, different levels will stay the same --- when
-you modify the libos, you can't compare directly.  However, you can
-compare the system call traces across implementations.  We will modify
-the tracing code to only log system calls so that you can do this easily.
-can compare across different implementations.
-
-We may wind up moving the tracing code to the libOS itself, since that
-is more exokernel-ish.  But for the moment we stick it in pix.
