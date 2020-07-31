@@ -388,8 +388,23 @@ it can be useful for sanity checking.)
 ---------------------------------------------------------------------
 #### Part 1: add sys_clone (or sys_fork)
 
-For clone you'll need a couple of extra things:
-  1. Alias physical memory to a location you can read or write.
+For `sys_clone` you'll need a couple of extra things:
+  1. Alias all of physical memory to a known offset so that if you want to read
+     or write any physical address you can just add the offset to the address
+     you want to write.
+  2. Add the `sys_clone` system call.  The main issue on the pix side is
+     duplicating the page table.    The main issue on the libos side is
+     writing a special trampoline that can save state before the syscall
+     and resume after (since the kernel does not).
+  3. Fix `sys_exit` to run another process if there is another one.
+
+###### 1. Alias physical memory.
+
+For global
+     kernel entries you can just copy the page table entry to the same offset in
+     the new page table.
+For non-global allocated entries
+     you need to allocate a new page and 
 
 
 ###### 1. Finish `sys_exit` to exit.
@@ -412,42 +427,3 @@ existing tests:
   1. Declare an array of `env_t` structures that is `MAX_NENV` big.
   2. Write an allocator and free to manage entries from this array.
   3. Write an allocator and free routine to manage `MAX_SEC` 1MB sections.
-
-
-
-
-
-***Still rewriting below and figuring things out.***
-
-For today's lab, and in general, many of our pix modifications should
-have no observable change to user process behavior.   Thus, an easy way 
-to detect if a pix modification has a bug is to:
-  1. Run a bunch of user processes before doing the modification, recording
-     the instructions they run and their register values.
-  2. Do the modification.
-  3. Re-run the user programs, checking that the traces remain the same.
-
-I think all operating systems should do this, but AFAIK no one has ever
-thought to do this trick.  (At best they may compare `printf` output's,
-which can miss many errors and is not informative about when exactly
-the problem occured.)
-
-We are going to set up your single-stepping code so that you can trace
-each user-process, compute a running hash of what it is doing,
-and then print the hash when it exits.  We use a hash rather than logging
-all operations because:
-  1. The hash will be sufficient to detect errors.
-  2. It sidesteps the need to have a logging framework and allocate memory for the 
-     moment (since pix is in flux).
-The downside will be that a hash isn't super informative for debugging
-since you won't know when the divergence happened.  We will remove this
-limiation when we decide on how to do kernel memory allocation.
-
-As you make modifications, different levels will stay the same --- when
-you modify the libos, you can't compare directly.  However, you can
-compare the system call traces across implementations.  We will modify
-the tracing code to only log system calls so that you can do this easily.
-can compare across different implementations.
-
-We may wind up moving the tracing code to the libOS itself, since that
-is more exokernel-ish.  But for the moment we stick it in pix.
