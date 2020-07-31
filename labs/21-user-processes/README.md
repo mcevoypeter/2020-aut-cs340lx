@@ -278,6 +278,8 @@ downsides to this increase:
 ---------------------------------------------------------------------
 #### Part 1: re-factor your code
 
+***STILL WRITING THIS***
+
 Before making `fork`, there are some simple refectoring steps you should
 make to your `init` code.  We describe these below.  ***Before you modify
 anything***, go into today's `code/` and run:
