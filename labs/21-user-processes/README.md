@@ -400,6 +400,27 @@ For `sys_clone` you'll need a couple of extra things:
 
 ###### 1. Alias physical memory.
 
+As you'll discover in the next step, you often want to write to memory
+in a process that is not running.    In theory you could change address
+spaces to do so, but if you want to write from process A to process B
+this doesn't work well.
+
+Instead many OSes use the following hack:
+  1. Alias all of phsical memory (as one contiguous chunk) to a known offset as a global
+     mapping that will be valid in all address spaces.  We use `PHYS_OFFSET` which is `0x80000000`.  
+  2. When you want to write to physical memory, just add this offset.
+
+For exmaple, to write to address 0x10 we can simply do:
+
+    void *phys_addr(void *addr) {
+        assert(addr < PHYS_MEM_SIZE);
+        return (void*)((char*)addr+PHYS_OFFSET);
+    }
+
+    void copy_section(void *to,  void *from) {
+        void *addr = phys_addr(0x10, + PHYS);
+
+
 For global
      kernel entries you can just copy the page table entry to the same offset in
      the new page table.
