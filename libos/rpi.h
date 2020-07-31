@@ -22,5 +22,7 @@ extern int (*rpi_putchar)(int c);
 void notmain(void);
 
 // you should extend this as you pull in more and more routines
+void PUT32(unsigned addr, unsigned v);
+unsigned GET32(unsigned addr);
 
 #endif
