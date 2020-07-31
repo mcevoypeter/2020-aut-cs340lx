@@ -1,0 +1,3 @@
+gpu_mem=16
+start_file=start_cd.elf
+fixup_file=fixup_cd.dat

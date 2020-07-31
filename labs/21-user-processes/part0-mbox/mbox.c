@@ -49,10 +49,10 @@ void mbox_write(unsigned channel, volatile void *data) {
     dev_barrier();
 
     // 2. if mbox STATUS is full, wait.
-    unimplemented();
+    while (GET32(MBOX_STATUS) & MAILBOX_FULL);
 
     // 3. write out the data along with the channel to WRITE
-    unimplemented();
+    PUT32(MBOX_WRITE, (uintptr_t)data | channel);
 
     // 4. make sure everything is flushed.
     dev_barrier();
@@ -65,15 +65,14 @@ unsigned mbox_read(unsigned channel) {
     dev_barrier();
 
     // 2. while mailbox is empty, wait.
-	while(GET32(MBOX_STATUS) & MAILBOX_EMPTY)
-            ;
+	while(GET32(MBOX_STATUS) & MAILBOX_EMPTY);
 
     // 3. read from mailbox and check that the channel is set.
-	unsigned v = 0;
-    unimplemented();
+	unsigned v = GET32(MBOX_READ);
 
     // 4. verify that the reply is for <channel>
-    unimplemented();
+    if ((v & 0xf) != channel)
+        panic("v=%u unintended for channel=%u\n", v, channel);
 
     // return it.
     return v;
@@ -127,7 +126,17 @@ uint32_t rpi_get_memsize(void) {
         u = kmalloc_aligned(8*4,16);
     memset((void*)u, 0, 8*4);
 
-    unimplemented();
+    // should abstract this.
+    u[0] = 8*4;   // total size in bytes.
+    u[1] = 0;   // always 0 when sending.
+    // ARM memory tag
+    // (https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface)
+    u[2] = 0x00010005;
+    u[3] = 8;   // response size size
+    u[4] = 0;   // request size
+    u[5] = 0;   // space for first 4 bytes of serial
+    u[6] = 0;   // space for second 4 bytes of serial
+    u[7] = 0;   // end tag
 
     mbox_send(MBOX_CH, u);
 
