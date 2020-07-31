@@ -278,7 +278,8 @@ downsides to this increase:
 ---------------------------------------------------------------------
 #### Part 1: re-factor your code
 
-***STILL WRITING THIS***
+***UNFORTUNATELY you will have to run your regressions by hand until
+I can hack the makefile.***
 
 Before making `fork`, there are some simple refectoring steps you should
 make to your `init` code.  We describe these below.  ***Before you modify
@@ -295,7 +296,6 @@ restructuring step that you have a working system, then run:
 and verify it completes.
 
 Make the following changes and run the checks after each one:
-
 
 ###### 1. Do correct global / not-global mappings.
 
@@ -400,30 +400,74 @@ For `sys_clone` you'll need a couple of extra things:
 
 ###### 1. Alias physical memory.
 
-For global
-     kernel entries you can just copy the page table entry to the same offset in
-     the new page table.
-For non-global allocated entries
-     you need to allocate a new page and 
+As you'll discover in the next step, you often want to write to memory
+in a process that is not running.    In theory you could change address
+spaces to do so, but if you want to write from process A to process B
+this doesn't work well.
+
+Instead many OSes use the following hack:
+  1. Alias all of phsical memory (as one contiguous chunk) to a known
+     offset as a global mapping that will be valid in all address spaces.
+     For an offset we use `PHYS_OFFSET` which is `0x80000000` (defined in
+     `pix-constants.h`)
+
+  2. When kernel code wants to write to physical memory, it simply
+     adds this
+     offset to the address.
+
+For exmaple, to copy one physical section to another when the MMU is on, simply
+do:
+
+    void *phys_addr(void *addr) {
+        assert(addr < PHYS_MEM_SIZE);
+        return (void*)((char*)addr+PHYS_OFFSET);
+    }
+    void copy_section(void *to,  void *from) {
+        memcpy(phys_addr(to), phys_addr(from), OneMB);
+    }
 
 
-###### 1. Finish `sys_exit` to exit.
+###### 2. Implement `sys_clone`
+
+On the pix side:
+   1. You'll have to duplicate the page table.  You'll scan through it and for
+      every global entry, just copy that entry to the new page table.  For
+      every non-global entry you'll have to allocate a new page and copy
+      the physical contents (using a `copy_section` like the above).
+   2. You'll have to set the `init` to be the location passed into `sys_clone`.
+
+On the libos side:
+   1. Pix does not save any state other than the continuation pc to jump back to.
+      So you will have to save this before calling.
+   2. You will also have to load the state after the call.
+   3. The trick is that you won't know what the stack pointer was set to before the
+      call so you will have to store the stack in a global variable.
+   4. To compute the address of where to jump back to, I just used an `ldr` of a label
+      (look in the interrupt code to see how to do this) since I know for sure what
+      value will get loaded.  If you copy the pc over, it's value is 8 bytes ahead.
+
+If the code does not work, I instead passed in the address of a routine that:
+  1. Loaded a fresh stack pointer.
+  2. Called  `sys_putc` so I could see that the code was running at all.
 
 
-In `sys_exit` you should look for the next runnable process (i.e., has a 
-non-null `init`).  If you don't find one, reboot.
-If you do find one, 
 
+     duplicating the page table.    The main issue on the libos side is
+     writing a special trampoline that can save state before the syscall
+     and resume after (since the kernel does not).
+  3. Fix `sys_exit` to run another process if there is another one.
 
-Note: just to remind you, the code that 
+###### 3. Finish `sys_exit`.
 
-You'll want each active enviroment 
+Right now `sys_exit` just reboots.  You should change it so that
+it:
+   1. Looks for the next runnable process (i.e., an `env` with a non-null `init`).
+   2. If there is none, reboot.
+   3. Otherwise, delete the current process including its private pages
+      --- these should have a refcount of 1) and then call `schedule()`.
+   4. Schedule just jumps to the new process.
 
-     the TLB).
-
-
-  These should not change the behavior of your
-existing tests:
-  1. Declare an array of `env_t` structures that is `MAX_NENV` big.
-  2. Write an allocator and free to manage entries from this array.
-  3. Write an allocator and free routine to manage `MAX_SEC` 1MB sections.
+Note that we all of our kernel calls are run to completion.  As a result,
+we *never* save state.  At the next call, we load the stack pointer to
+the start of the stack and run from scratch.  This makes entry and exit
+from the kernel fast (no state to save and restore, no stacks to manage).
